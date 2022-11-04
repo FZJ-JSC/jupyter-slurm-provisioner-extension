@@ -22,7 +22,7 @@ class RouteHandler(APIHandler):
         username = os.environ.get("JUPYTERHUB_USER", None)
         api_url = os.environ.get("JUPYTERHUB_API_URL", f"{self.request.protocol}://{self.request.host}/hub/api").rstrip("/")
         url = f"{api_url}/users/{username}/servers/{servername}/optionsform"
-        
+
         # Receive current options form for this user + system
         req = HTTPRequest(
             url=url,
@@ -41,7 +41,6 @@ class RouteHandler(APIHandler):
             self.log.exception("Slurmel: Could not receive OptionsForm information")
             body = {}
         
-        
         try:
             with open(f"{os.environ.get('HOME', '')}/.local/share/jupyter/runtime/slurm_provisioner.json", "r") as f:
                 allocations = json.load(f)
@@ -49,6 +48,16 @@ class RouteHandler(APIHandler):
         except Exception:
             self.log.warning("Could not read slurm_provisioner.json storage file")
             body["allocations"] = {}
+
+        # add current configuration to return
+        try:
+            with open(f"{os.environ.get('HOME', '')}/.local/share/jupyter/kernels/slurm-provisioner-kernel/kernel.json", "r") as f:
+                kernel_json = json.load(f)
+            body["current_config"] = kernel_json.get("metadata", {}).get("kernel_provisioner", {}).get("config", {})
+        except Exception:
+            self.log.warning("Could not read kernel.json file")
+            body["current_config"] = {}
+
         body["documentationhref"] = os.environ.get("SLURMEL_DOCUMENTATION_HREF", "slurmeldocumentation")
         self.finish(json.dumps(body))
     
@@ -78,17 +87,7 @@ def default_kernel():
         "metadata": {
             "debugger": True,
             "kernel_provisioner": {
-                "config": {
-                    "gpus": "0",
-                    "nodes": "0",
-                    "partition": "None",
-                    "project": "None",
-                    "reservation": "None",
-                    "runtime": 30,
-                    "jobid": "None",
-                    "node": "None",
-                    "kernel_argv": []
-                },
+                "config": {},
                 "provisioner_name": "slurm-provisioner"
             }
         }

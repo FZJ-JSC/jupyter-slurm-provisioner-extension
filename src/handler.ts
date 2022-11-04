@@ -51,6 +51,7 @@ export async function sendPostRequest(config: any) {
   let new_config: {} = {
       jobid: String(config.allocation || "None"),
       node: String(config.node || "None"),
+      kernel: config.kernel,
       kernel_argv: config.kernel_argv,
       kernel_language: config.kernel_language,
       project: String(config.project),
@@ -75,7 +76,8 @@ export async function sendGetRequest(): Promise<OptionsForm> {
     dropdown_lists: {},
     resources: {},
     allocations: {},
-    documentationhref: ""
+    documentationhref: "",
+    current_config: {}
   }
   await requestAPI<any>('configure').then(data => {
     config_system = data;

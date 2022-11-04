@@ -7,7 +7,8 @@ export type OptionsForm = {
   dropdown_lists: {[key: string]: any},
   resources: any,
   allocations: any,
-  documentationhref: string
+  documentationhref: string,
+  current_config: any
 }
 
 /**
@@ -31,8 +32,9 @@ export class SlurmelWidget extends ReactWidget {
   getValue() {
     // Collect selected config to update slurm-provisioner-kernel
     const state = this.slurmelRef.current.state;
+    const kernel: string = state.kernel
     const kernel_argv: Array<string> = this.available_kernels[state.kernel][1]
-    const kernel_language: Array<string> = this.available_kernels[state.kernel][2]
+    const kernel_language: string = this.available_kernels[state.kernel][2]
     let allocation = "";
     let node = "";
     if ( state.allocation === "New" ) {
@@ -48,6 +50,7 @@ export class SlurmelWidget extends ReactWidget {
     const config = {
       allocation,
       node,
+      kernel,
       kernel_argv,
       kernel_language,
       project: state.project,
@@ -83,9 +86,62 @@ class SlurmelComponents extends React.Component<{config_system: any, available_k
     this.handleKernelChange = this.handleKernelChange.bind(this);
     this.handleNumberChange = this.handleNumberChange.bind(this);
 
+    // translate current_config from kernel.json to this state
+    const current_config_comp = this.get_current_config(props.config_system.current_config);
+
     // apply default values
-    this.state = this.default_values(props);
+    this.state = this.default_values(props, current_config_comp);
   }
+
+  get_current_config(
+    current_config: any
+  ) {
+    let allocation: string = current_config.jobid || "None";
+    let allocation_node: string = current_config.node || "None";
+
+    if ( allocation === "None" ) {
+      allocation = "";
+      allocation_node = "";
+    } else {
+      if ( allocation_node === "None" ) {
+        allocation_node = "";
+      }
+    }
+    let kernel: string = current_config.kernel || "" ;
+    let project: string = current_config.project || "";
+    let partition: string = current_config.partition || "";
+    let nodes: string = current_config.nodes || "";
+    let gpus: string = current_config.gpus || "";
+    let runtime: string = current_config.runtime || "";
+    let reservation: string = current_config.runtime || "";
+    return ({
+      allocation,
+      allocation_node,
+      kernel,
+      project,
+      partition,
+      nodes,
+      gpus,
+      runtime,
+      reservation,
+    });
+  }
+
+  // "gpus": "0",
+  // "jobid": "None",
+  // "kernel_argv": [
+  //     "/home/ubuntu/miniconda3/envs/slurm_provisioner_configurator/bin/python3",
+  //     "-m",
+  //     "ipykernel_launcher",
+  //     "-f",
+  //     "{connection_file}"
+  // ],
+  // "kernel_language": "python",
+  // "nodes": "1",
+  // "partition": "batch",
+  // "project": "cjsc",
+  // "reservation": "None",
+  // "runtime": "30"
 
   default_values(
     props: any, {
@@ -174,7 +230,11 @@ class SlurmelComponents extends React.Component<{config_system: any, available_k
 
     // show rest time for allocation
     if ( allocation === "New" ){
-      date_show = false;      
+      date_show = false;
+      resources_editable = true;
+    } else {
+      date_show = true;
+      resources_editable = false;
     }
     if ( date_show && date_endtime == "") {
       let tmp = props.config_system.allocations[allocation]
@@ -249,8 +309,8 @@ class SlurmelComponents extends React.Component<{config_system: any, available_k
     }
   }
 
-  handleNodeChange(key: string, node: string) {
-    this.setState({node});
+  handleNodeChange(key: string, allocation_node: string) {
+    this.setState({allocation_node});
   }
 
   handleKernelChange(key: string, kernel: string) {
