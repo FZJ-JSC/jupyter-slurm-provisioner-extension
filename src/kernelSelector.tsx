@@ -60,10 +60,10 @@ export async function getBody(config_system: any, available_kernels: any) {
         let kernel: any = available_kernels[key];
         try {
             if ( kernel.metadata["kernel_provisioner"]["provisioner_name"] != "slurm-provisioner" ) {
-              available_kernel_names[kernel.name] = [kernel.display_name, kernel.argv];
+              available_kernel_names[kernel.name] = [kernel.display_name, kernel.argv, kernel.language];
             }      
         } catch (error) {
-              available_kernel_names[kernel.name] = [kernel.display_name, kernel.argv];
+              available_kernel_names[kernel.name] = [kernel.display_name, kernel.argv, kernel.language];
         }
     }
     const body = new SlurmelWidget(config_system, available_kernel_names);

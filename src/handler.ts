@@ -52,6 +52,7 @@ export async function sendPostRequest(config: any) {
       jobid: String(config.allocation || "None"),
       node: String(config.node || "None"),
       kernel_argv: config.kernel_argv,
+      kernel_language: config.kernel_language,
       project: String(config.project),
       partition: String(config.partition),
       nodes: String(config.nodes),

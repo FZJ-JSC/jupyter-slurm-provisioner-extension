@@ -31,7 +31,8 @@ export class SlurmelWidget extends ReactWidget {
   getValue() {
     // Collect selected config to update slurm-provisioner-kernel
     const state = this.slurmelRef.current.state;
-    const kernel_argv: Array<string> = this.available_kernels[state.kernel][1] 
+    const kernel_argv: Array<string> = this.available_kernels[state.kernel][1]
+    const kernel_language: Array<string> = this.available_kernels[state.kernel][2]
     let allocation = "";
     let node = "";
     if ( state.allocation === "New" ) {
@@ -48,6 +49,7 @@ export class SlurmelWidget extends ReactWidget {
       allocation,
       node,
       kernel_argv,
+      kernel_language,
       project: state.project,
       partition: state.partition,
       nodes: state.nodes,
