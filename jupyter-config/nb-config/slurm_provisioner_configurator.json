@@ -1,0 +1,7 @@
+{
+  "NotebookApp": {
+    "nbserver_extensions": {
+      "slurm_provisioner_configurator": true
+    }
+  }
+}
