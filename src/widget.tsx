@@ -198,8 +198,8 @@ class SlurmelComponents extends React.Component<{config_system: any, available_k
     }
     tmp = dl.reservations;
     const reservations: Array<string> = project in tmp && partition in dl.reservations[project] ? dl.reservations[project][partition] : ["None"];
-
-    if ( allocation === "" ) {
+    console.log(props.config_system.allocations);
+    if ( allocation === "" || !(props.config_system.allocations.hasOwnProperty(allocation) ) ) {
       allocation = "New";
     }
     let allocation_names: Array<String> = ["New"];
@@ -212,7 +212,7 @@ class SlurmelComponents extends React.Component<{config_system: any, available_k
       allocation_node = "Any";
     }
     let allocation_node_names: Array<String> = ["Any"];
-    if ( allocation != "New" ) {
+    if ( allocation != "New" ) {      
       let tmp = props.config_system.allocations[allocation];
       if ( tmp.nodelist) {
         allocation_node_names = allocation_node_names.concat(tmp.nodelist);
