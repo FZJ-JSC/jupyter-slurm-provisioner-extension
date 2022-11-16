@@ -439,14 +439,34 @@ class SlurmelComponents extends React.Component<{config_system: any, available_k
     const runtime = <InputNumberComponent label="Runtime (min)" key_="runtime" value={this.state.runtime} min={this.state.runtime_min} max={this.state.runtime_max} onValueChange={this.handleNumberChange} editable={this.state.resources_editable} />;
     const timer = <AllocationTimer key_="timer" date_label="Time left: " date_endtime={this.state.date_endtime} date_show={this.state.date_show} />;
 
-    const spanStyle = {
+    const divStyle = {
       minWidth: '450px',
       overflow: 'auto'
     }
-    if ( ! this.state.date_show ) {
-      return (
-        <span style={spanStyle}>
+
+    return (
+      <div style={divStyle}>
+        <h4>Current configuration</h4>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridGap: '0 20px'}}>
+          <InfoComponent label="Allocation" value={this.state.allocation} />
+          <InfoComponent label="Node" value={this.state.allocation_node} />
+          <div></div>
+          <InfoComponent label="Kernel" value={this.state.kernel} />
+          <InfoComponent label="Project" value={this.state.project} />
+          <InfoComponent label="Partition" value={this.state.partition} />
+          <InfoComponent label="Nodes" value={this.state.nodes} />
+          {this.state.gpus > 0 && <InfoComponent label="GPUs" value={this.state.gpus} />}
+          <InfoComponent label="Runtime" value={this.state.runtime} />
+          {!(this.state.gpus > 0) && <div></div>}
+          {this.state.reservation != "None" && this.state.reservations.length > 1 && 
+              <InfoComponent label="Reservation" value={this.state.reservation} />}
+          {this.state.date_show && timer}
+        </div>
+ 
+        <div style={{marginTop: '2rem'}}>
+          <h4>Modify and select configuration</h4>
           {allocations}
+          {allocnodes}
           {kernels}
           {projects}
           {partitions}
@@ -454,23 +474,9 @@ class SlurmelComponents extends React.Component<{config_system: any, available_k
           {gpus}
           {runtime}
           {reservations}
-        </span>
-      )
-    }
-    return (
-      <span style={spanStyle}>
-        {timer}
-        {allocations}
-        {allocnodes}
-        {kernels}
-        {projects}
-        {partitions}
-        {nodes}
-        {gpus}
-        {runtime}
-        {reservations}
-      </span>
-    );
+        </div>
+      </div>
+    )
   }
 }
 
@@ -516,12 +522,12 @@ export class AllocationTimer extends React.Component<{key_: string, date_label: 
 
   render() {
     const labelStyle = {
-      display: 'flex'
+      display: 'flex',
     };
     let spanStyle = {
       alignSelf: 'center',
       flex: '8 1 0',
-      color: 'black'
+      color: 'black',
     };
     if ( parseInt(this.state.distance) < 300 ) {
       spanStyle.color = "red"
@@ -536,7 +542,8 @@ export class AllocationTimer extends React.Component<{key_: string, date_label: 
           <div className='lm-Widget p-Widget jp-Dialog-body'>
             <label style={labelStyle}>
               <span style={spanStyle}>
-                {this.props.date_label}{this.state.hours}:{minutes}:{seconds}
+                <span style={{fontWeight: 'bold'}}>{this.props.date_label}</span>
+                <span style={{float: 'right'}}>{this.state.hours}:{minutes}:{seconds}</span>
               </span>
               {/* <input style={inputStyle} className='jp-mod-styled' type="number" disabled={!this.props.editable} key={this.props.key_} id={this.props.key_} name={this.props.key_} value={this.props.value} min={this.props.min} max={this.props.max} onChange={this.handleChange}/> */}
             </label>
@@ -586,7 +593,7 @@ class DropdownComponent extends React.Component<{label: string, key_: string, se
       valuesReact = values.map(
         x => 
         {
-          if (x === selected){
+          if (x === selected) {
             return <option selected>{x}</option>;
           } else {
             return <option>{x}</option>;
@@ -602,7 +609,7 @@ class DropdownComponent extends React.Component<{label: string, key_: string, se
             {this.props.label} :
           </label>
           <div className='jp-select-wrapper'>
-            <select className='jp-mod-styled' key={this.props.key_} disabled={!this.props.editable} name={this.props.key_} onChange={this.handleChange}>{valuesReact}</select>
+            <select className='slurmel-select' key={this.props.key_} disabled={!this.props.editable} name={this.props.key_} onChange={this.handleChange}>{valuesReact}</select>
           </div>
         </div>
       </div>
@@ -624,17 +631,19 @@ class InputNumberComponent extends React.Component<{label: string, key_: string,
   }
 
   render() {
-    const inputStyle = {
-      marginLeft: '20px',
-      maxWidth: '100px',
-    };
     const labelStyle = {
-      display: 'flex'
+      display: 'flex',
+      marginBottom: '12px',
+      fontSize: 'var(--jp-ui-font-size2)',
     };
     const spanStyle = {
       alignSelf: 'center',
       flex: '8 1 0'
     };
+
+    let inputClasses = 'jp-mod-styled slurmel-input';
+    if (!this.props.editable) inputClasses += ' disabled';
+   
     if ( this.props.key_ === "gpus" && this.props.value === "0" ) {
       return null;
     }
@@ -643,10 +652,21 @@ class InputNumberComponent extends React.Component<{label: string, key_: string,
         <div className='lm-Widget p-Widget jp-Dialog-body'>
           <label style={labelStyle}>
             <span style={spanStyle}>{this.props.label} [{this.props.min}-{this.props.max}]: </span>
-            <input style={inputStyle} className='jp-mod-styled' type="number" disabled={!this.props.editable} key={this.props.key_} id={this.props.key_} name={this.props.key_} value={this.props.value} min={this.props.min} max={this.props.max} onChange={this.handleChange}/>
+            <input className={inputClasses} type="number" disabled={!this.props.editable} key={this.props.key_} id={this.props.key_} name={this.props.key_} value={this.props.value} min={this.props.min} max={this.props.max} onChange={this.handleChange}/>
           </label>
         </div>
       </div>
     );
+  }
+}
+
+class InfoComponent extends React.Component<{label: string, value: string}> {
+  render() {
+    return (
+      <div>
+        <span style={{fontWeight: 'bold'}}>{this.props.label}:</span>
+        <span style={{float: 'right'}}>{this.props.value}</span>
+      </div>
+    )
   }
 }
