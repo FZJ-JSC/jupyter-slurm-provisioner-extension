@@ -152,7 +152,6 @@ export class SlurmConfigWidget extends ReactWidget {
       nodes: state.nodes,
       gpus: state.gpus,
       runtime: state.runtime,
-      name: "custom"
     }
 
     return config;

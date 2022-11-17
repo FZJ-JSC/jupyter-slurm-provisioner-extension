@@ -42,14 +42,14 @@ export function getTitle(documentationhref: string) {
 export async function getBody(config_system: any, available_kernels: any) {
     let available_kernel_names: any = {};
     for (let key in available_kernels ){
-        let kernel: any = available_kernels[key];
-        try {
-            if ( kernel.metadata["kernel_provisioner"]["provisioner_name"] != "slurm-provisioner" ) {
-              available_kernel_names[kernel.name] = [kernel.display_name, kernel.argv, kernel.language];
-            }      
-        } catch (error) {
-              available_kernel_names[kernel.name] = [kernel.display_name, kernel.argv, kernel.language];
-        }
+      let kernel: any = available_kernels[key];
+      try {
+        if ( kernel.metadata["kernel_provisioner"]["provisioner_name"] != "slurm-provisioner" ) {
+          available_kernel_names[kernel.display_name] = kernel.argv;
+        }      
+      } catch (error) {
+        available_kernel_names[kernel.display_name] = kernel.argv;
+      }
     }
     const body = new SlurmConfigWidget(config_system, available_kernel_names);
     return body;
@@ -64,8 +64,11 @@ export async function handleResult(result: any, sessionContext: any | null) {
         if (sessionContext.isDisposed || !result.button.accept) {
             return;
         }
-
-        const previous_name = sessionContext._session._kernel._name;
+        
+        let previous_name = '';
+        if (sessionContext._session) {
+          previous_name = sessionContext._session._kernel._name;
+        }
         if (model && previous_name != "slurm-provisioner-kernel" ) {
             await sessionContext.changeKernel(model);
         }
@@ -98,6 +101,7 @@ export class DialogCustom implements ISessionContext.IDialogs {
         // Load available kernels, excecpt the slurm one, in a list
         
         const config_system = await sendGetRequest();
+        
         const body = await getBody(config_system, sessionContext.specsManager.specs?.kernelspecs);
         const dialog = new Dialog({
             title: getTitle(config_system.documentationhref),
