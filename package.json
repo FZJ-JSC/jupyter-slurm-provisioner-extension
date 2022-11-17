@@ -1,6 +1,6 @@
 {
   "name": "jupyter-slurm-provisioner-extension",
-  "version": "0.1.8",
+  "version": "0.2.0",
   "description": "Configure the Slurm kernel in JupyterLab",
   "keywords": [
     "jupyter",
