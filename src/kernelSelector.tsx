@@ -13,7 +13,7 @@ import {
 } from '@jupyterlab/apputils';
 
 
-import { SlurmelWidget } from './widget'
+import { SlurmConfigWidget } from './widgets'
 import { Widget } from '@lumino/widgets';
 
 import { nullTranslator, ITranslator } from '@jupyterlab/translation';
@@ -21,39 +21,24 @@ import { slurmelIcon2 } from './icon';
 // import { slurmelIcon2 } from './icon';
 
 
-// export class Title extends React.Component<{}, {isHover: boolean }> {
-//     constructor(props: any) {
-//         super(props);
-//         this.state = { isHover: false }
-//     }
-
-//     handleMouseEnter() {
-//         this.setState({ isHover: true });
-//     };
-//     handleMouseLeave() {
-//         this.setState({ isHover: false });
-//     };
-
-//     render(): JSX.Element {
-//         const aStyle = {
-//             color: this.state.isHover ? "green" : "#1a0dab"
-//         }
-//         return <div><span>Configure Slurm Wrapper</span><a style={aStyle} href="google.com">google</a></div>
-//     }
-// }
-
 export function getTitle(documentationhref: string) {
-    const spanOutStyle = {
-        display: "flex",
-        width: "100%",
-        justifyContent: "space-between"
-    }
-    const aStyle = {
-        color: "#1a0dab",
-        textDecoration: "underline"
-    }
-    return <span style={spanOutStyle}><span>Configure Slurm Wrapper</span><a style={aStyle} href={documentationhref}>Documentation</a></span>
+  const spanOutStyle = {
+    display: "flex",
+    width: "100%",
+    justifyContent: "space-between"
+  }
+  const aStyle = {
+    color: "#1a0dab",
+    textDecoration: "underline"
+  }
+  return (
+    <span style={spanOutStyle}>
+      <span>Configure Slurm Wrapper</span>
+      <a style={aStyle} href={documentationhref} target='_blank'>Documentation</a>
+    </span>
+  )
 }
+
 export async function getBody(config_system: any, available_kernels: any) {
     let available_kernel_names: any = {};
     for (let key in available_kernels ){
@@ -66,8 +51,8 @@ export async function getBody(config_system: any, available_kernels: any) {
               available_kernel_names[kernel.name] = [kernel.display_name, kernel.argv, kernel.language];
         }
     }
-    const body = new SlurmelWidget(config_system, available_kernel_names);
-    return body
+    const body = new SlurmConfigWidget(config_system, available_kernel_names);
+    return body;
 }
 
 export async function handleResult(result: any, sessionContext: any | null) {

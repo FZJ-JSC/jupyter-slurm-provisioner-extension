@@ -13,7 +13,7 @@ import {
 import * as React from 'react';
 import * as apputils from '@jupyterlab/apputils';
 
-import { AllocationTimer } from './widget';
+import { AllocationTimer } from './widgets';
 
 import { createKernelNameItemCustom, DialogCustom } from './kernelSelector';
 
@@ -94,10 +94,15 @@ class RemainingTimeComp extends React.Component<{panel: NotebookPanel}, {date_sh
   }
 
   render() {
-    const timer = <AllocationTimer key_="timer" date_label={this.state.date_label} date_endtime={this.state.date_endtime} date_show={this.state.date_show} />;
+    const timer = <AllocationTimer key_="timer" date_label={this.state.date_label} date_endtime={this.state.date_endtime} />;
     const style = {
       alignSelf: "center"
     };
-    return <div style={style}>{timer}</div>;
+    if (this.state.date_show) {
+      return <div style={style}>{timer}</div>;
+    } else {
+      return null;
+    }
+   
   }
 }

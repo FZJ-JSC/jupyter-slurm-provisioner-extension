@@ -2,7 +2,7 @@ import { URLExt } from '@jupyterlab/coreutils';
 
 import { ServerConnection } from '@jupyterlab/services';
 
-import { OptionsForm } from './widget';
+import { OptionsForm } from './widgets';
 
 /**
  * Call the API extension

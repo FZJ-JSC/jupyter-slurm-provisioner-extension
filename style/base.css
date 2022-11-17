@@ -1,19 +1,32 @@
-.jp-ReactWidget {
+.slurm-wrapper-panel {
   color: var(--jp-ui-font-color1);
   background: var(--jp-layout-color1);
-  font-size: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
 
-select.slurmel-select {
-  flex: 1 1 auto;
-  height: 32px;
-  font-size: var(--jp-ui-font-size2);
-  color: var(--jp-ui-font-color0);
-  padding: 0 25px 0 8px;
+.slurm-wrapper-panel > div {
+  margin: 0px;
+  padding: 8px 12px;
+}
+
+.slurm-wrapper-panel h2 {
+  border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
+  font-size: var(--jp-ui-font-size0);
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin: 0px;
+  padding: 8px 12px;
+  text-transform: uppercase;
+}
+
+button.slurm-config-btn {
+  background-color: var(--md-blue-500);
+  border: 0;
+  border-radius: 3px;
+  box-sizing: border-box;
+  color: white;
+  font-size: var(--jp-ui-font-size1);
+  height: 28px;
+  width: 100%;
 }
 
 input.slurmel-input {
@@ -29,4 +42,24 @@ input.slurmel-input.disabled {
   background-color: #f4f4f6;
   border-radius: 5px;
   border-color: #c4c4cc;
+}
+
+label.slurm-input-label {
+  display: flex;
+  /* font-size: var(--jp-ui-font-size2); */
+  margin-bottom: 12px;
+}
+
+span.slurm-config-span {
+  align-self: center;
+  flex: 8 1 0;
+  color: var(--jp-ui-font-color0);
+}
+
+select.slurmel-select {
+  flex: 1 1 auto;
+  height: 32px;
+  font-size: var(--jp-ui-font-size2);
+  color: var(--jp-ui-font-color0);
+  padding: 0 25px 0 8px;
 }
