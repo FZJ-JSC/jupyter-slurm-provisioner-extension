@@ -68,12 +68,13 @@ const spanClass = 'slurm-config-span';
 
 
 export class SlurmPanel extends ReactWidget {
+  private _available_kernels: any;
   private _commands: CommandRegistry;
   private _stateChanged = new Signal<SlurmPanel, OptionsForm>(this);
 
   constructor(
     commands: CommandRegistry,
-    available_kernel_names: any
+    available_kernels: any
     ) {
     super();
     this.id = 'slurm-wrapper-widget';
@@ -81,6 +82,7 @@ export class SlurmPanel extends ReactWidget {
     this.title.icon = slurmelIcon;
     this.title.caption = 'Slurm Wrapper';
 
+    this._available_kernels = available_kernels;
     this._commands = commands;
   }
 
@@ -99,7 +101,7 @@ export class SlurmPanel extends ReactWidget {
     return (
       <React.Fragment>
         <h2>Current Configuration</h2>
-        <CurrentSlurmConfig panel={this} />
+        <CurrentSlurmConfig panel={this} available_kernels={this._available_kernels}/>
         <SlurmConfigurator commands={this._commands}/>
       </React.Fragment>
     )
@@ -107,27 +109,26 @@ export class SlurmPanel extends ReactWidget {
 }
 
 /**
- * Slurm configurator widget
+ * Slurm configurator widget.
  */
-export class SlurmConfigWidget extends ReactWidget {
-  private _available_kernels: any;
-  private _config_system: any;
-  slurmelRef: any;
+ export class SlurmConfigWidget extends ReactWidget {
+  private _config_system: OptionsForm;
+  private _available_kernels: any
+  private _slurmelRef: any
 
-  constructor(config_system: any, available_kernels: any, ) {
+  constructor(config_system: OptionsForm, available_kernels: any) {
     super();
-    this._available_kernels = available_kernels;
     this._config_system = config_system;
-    this.slurmelRef = React.createRef();
+    this._available_kernels = available_kernels;
+    this._slurmelRef = React.createRef();
   }
 
   getValue() {
     // Collect selected config to update slurm-provisioner-kernel
-    const state = this.slurmelRef.current.state;
-    const kernel: string = state.kernel;
-    const kernel_argv: Array<string> = this._available_kernels[state.kernel][1];
-    const kernel_language: string = this._available_kernels[state.kernel][2];
-
+    const state = this._slurmelRef.current.state;
+    const kernel: string = state.kernel
+    const kernel_argv: Array<string> = this._available_kernels[state.kernel][1]
+    const kernel_language: string = this._available_kernels[state.kernel][2]
     let allocation = "";
     let node = "";
     if ( state.allocation === "New" ) {
@@ -140,7 +141,6 @@ export class SlurmConfigWidget extends ReactWidget {
     } else {
       node = state.allocation_node
     }
-
     const config = {
       allocation,
       node,
@@ -158,9 +158,9 @@ export class SlurmConfigWidget extends ReactWidget {
   }
 
   render(): JSX.Element {
-    return(
-      <SlurmelComponents available_kernels={this._available_kernels} config_system={this._config_system} ref={this.slurmelRef} />
-    )
+    // TODO no config_system no party
+    const x = <SlurmelComponents config_system={this._config_system} available_kernels={this._available_kernels} ref={this._slurmelRef}/>;
+    return x;
   }
 }
 
@@ -181,7 +181,6 @@ export class SlurmConfigWidget extends ReactWidget {
 
     // translate current_config from kernel.json to this state
     const current_config_comp = this.get_current_config(props.config_system.current_config);
-
     // apply default values
     this.state = this.default_values(props, current_config_comp);
   }
@@ -275,7 +274,7 @@ export class SlurmConfigWidget extends ReactWidget {
     }
     tmp = dl.reservations;
     const reservations: Array<string> = project in tmp && partition in dl.reservations[project] ? dl.reservations[project][partition] : ["None"];
-    console.log(props.config_system.allocations);
+    // console.log(props.config_system.allocations);
     if ( allocation === "" || !(props.config_system.allocations.hasOwnProperty(allocation) ) ) {
       allocation = "New";
     }
@@ -522,7 +521,6 @@ export class SlurmConfigWidget extends ReactWidget {
       overflow: 'auto'
     }
 
-
     if (this.state.allocation == "New") {
       return (
         <div style={divStyle}>
@@ -542,7 +540,7 @@ export class SlurmConfigWidget extends ReactWidget {
         <div style={divStyle}>
           {allocations}
           {allocnodes}
-          <InfoComponent label="Kernel" value={this.state.kernel} />
+          {kernels}
           <InfoComponent label="Project" value={this.state.project} />
           <InfoComponent label="Partition" value={this.state.partition} />
           <InfoComponent label="Nodes" value={this.state.nodes} />
@@ -559,7 +557,7 @@ export class SlurmConfigWidget extends ReactWidget {
 /**
  * Component containing info about current slurm configuration.
  */
-export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel}, ISlurmConfigState> {
+export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, available_kernels: any}, ISlurmConfigState> {
   constructor(props: any) {
     super(props);
     this.props.panel.stateChanged.connect(this._updateState, this);
@@ -580,7 +578,7 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel}, ISl
   }
 
   private _updateState(emitter: SlurmPanel, data: OptionsForm): void {
-    console.log(data);
+    // console.log(data);
     const current_config = data.current_config;
   
     if (Object.keys(current_config).length === 0 ) {
@@ -613,6 +611,10 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel}, ISl
         this.setState({
           endtime: data.allocations[jobid].endtime,
         })
+      } else {
+        this.setState({
+          endtime: '',
+        })
       }
     }
   }
@@ -624,12 +626,17 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel}, ISl
         <div>Nothing configured yet. Click configure and choose a partition.</div>
       )
     }
+
+    let kernelName = '';
+    if (this.props.available_kernels[this.state.kernel]) {
+      kernelName = this.props.available_kernels[this.state.kernel].display_name;
+    }
     // Return current configuration.
     return (
       <div>
         <InfoComponent label="Allocation" value={this.state.allocation} />
         <InfoComponent label="Node" value={this.state.node} />
-        <InfoComponent label="Kernel" value={this.state.kernel} />
+        <InfoComponent label="Kernel" value={kernelName} />
         <InfoComponent label="Project" value={this.state.project} />
         <InfoComponent label="Partition" value={this.state.partition} />
         <InfoComponent label="Nodes" value={this.state.nodes} />

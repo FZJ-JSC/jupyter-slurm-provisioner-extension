@@ -15,10 +15,10 @@ import {
   Dialog,
   showDialog
 } from '@jupyterlab/apputils';
-import { getTitle, handleResult } from './kernelSelector';
+import { getBody, getTitle, handleResult } from './kernelSelector';
 import { slurmelIcon } from './icon';
 import { sendGetRequest } from './handler';
-import { SlurmPanel, SlurmConfigWidget } from './widgets';
+import { SlurmPanel } from './widgets';
 
 /**
  * The command IDs used by the react-widget plugin
@@ -70,7 +70,7 @@ function activate(
     }
   }
 
-  const slurmPanel = new SlurmPanel(commands, available_kernel_names);
+  const slurmPanel = new SlurmPanel(commands, available_kernels);
   restorer.add(slurmPanel, 'slurm-config');
   app.shell.add(slurmPanel, 'left', { rank: 501 });
   
@@ -93,19 +93,19 @@ function activate(
     caption: 'Configure slurm wrapper',
     icon: (args) => slurmelIcon,
     execute: async () => {
-      const config_system = await sendGetRequest();
-
       const buttons = [
-          Dialog.cancelButton({ label: 'Cancel' }),
-          Dialog.okButton({ label: 'Save' })
+        Dialog.cancelButton({ label: 'Cancel' }),
+        Dialog.okButton({ label: 'Save' })
       ];
+
+      const config_system = await sendGetRequest();
+      const body = await getBody(config_system, available_kernels)
       showDialog({
         title: getTitle(config_system.documentationhref),
-        body: new SlurmConfigWidget(config_system, available_kernel_names),
+        body: body,
         buttons: buttons
       }).then((e) => {
-        handleResult(e, null);
-        slurmPanel.update();
+        handleResult(e, null, slurmPanel);
       });
     }
   });
@@ -120,7 +120,7 @@ function activate(
   }
 
   // Add WidgetExtension to Notebook (Toolbar Countdown)
-  app.docRegistry.addWidgetExtension('Notebook', new ToolbarCountdown());
+  app.docRegistry.addWidgetExtension('Notebook', new ToolbarCountdown(slurmPanel));
 
 }
 
