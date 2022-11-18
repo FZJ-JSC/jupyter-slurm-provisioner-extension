@@ -19,6 +19,8 @@ import { Widget } from '@lumino/widgets';
 import { slurmelIcon2 } from './icon';
 // import { slurmelIcon2 } from './icon';
 
+const acceptLabel = '(Re)Start';
+
 
 export function getTitle(documentationhref: string) {
   const spanOutStyle = {
@@ -56,11 +58,11 @@ export async function getBody(config_system: any, available_kernels: any) {
 
 export async function handleResult(result: any, sessionContext: any | null, slurmPanel: SlurmPanel) {
   const model = result.value;
-  if (model && (result.button.accept || result.button.save)) {
+  if (model && (result.button.accept)) {
     await sendPostRequest(model);
   }
   if (sessionContext) {
-    if (sessionContext.isDisposed || !result.button.accept) {
+    if (sessionContext.isDisposed || !(result.button.label == acceptLabel)) {
       return;
     }
 
@@ -102,7 +104,7 @@ export class DialogCustom implements ISessionContext.IDialogs {
     const buttons = [
       Dialog.cancelButton({ label }),
       saveButton({ label: "Save" }),
-      Dialog.okButton({ label: '(Re)Start' })
+      Dialog.okButton({ label: acceptLabel })
     ];
     // Load available kernels, excecpt the slurm one, in a list
 
