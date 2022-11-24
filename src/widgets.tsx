@@ -126,10 +126,9 @@ export class SlurmPanel extends ReactWidget {
   getValue() {
     // Collect selected config to update slurm-provisioner-kernel
     const state = this._slurmelRef.current.state;
-    // Map display name to key
-    const kernel: any = Object.keys(this._available_kernels).find(key => this._available_kernels[key][0] === state.kernel);
-    const kernel_argv: Array<string> = this._available_kernels[kernel][1]
-    const kernel_language: string = this._available_kernels[kernel][2]
+    const kernel: string = state.kernel;
+    const kernel_argv: Array<string> = this._available_kernels[state.kernel][1];
+    const kernel_language: string = this._available_kernels[state.kernel][2];
     let allocation = "";
     let node = "";
     if ( state.allocation === "New" ) {
