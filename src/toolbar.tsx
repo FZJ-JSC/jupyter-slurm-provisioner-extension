@@ -60,13 +60,13 @@ class RemainingTimeComp extends React.Component<{panel: NotebookPanel}, {date_sh
       date_endtime: 0,
       date_label: "Remaining time: "
     }
-    this.props.panel.sessionContext.kernelChanged.connect(this._kernelChanged, this);
+    this.props.panel.sessionContext.connectionStatusChanged.connect(this._connectionStatusChanged, this);
   }
   
-  async _kernelChanged(a: any, b: any) {
+  async _connectionStatusChanged(a: any, b: any) {
     let found_kernel = false;
-    if ( b.newValue ) {
-      const kernelID = b.newValue._id;
+    if ( a._prevKernelName == "slurm-provisioner-kernel" && b == "connected" ) {
+      const kernelID = a._session._id;
       const config_system = await sendGetRequest();
       for ( let x in config_system.allocations ) {
         if ( (! found_kernel) && config_system.allocations[x].kernel_ids.includes(kernelID) ){
