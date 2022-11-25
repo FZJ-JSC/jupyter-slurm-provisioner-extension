@@ -13,19 +13,11 @@ import {
 import * as React from 'react';
 import * as apputils from '@jupyterlab/apputils';
 
-import { AllocationTimer, SlurmPanel } from './widgets';
-
-import { createKernelNameItemCustom, DialogCustom } from './kernelSelector';
+import { AllocationTimer } from './widgets';
 
 export class ToolbarCountdown
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel>
 {
-  private _slurmPanel : SlurmPanel;
-
-  constructor(slurmPanel: SlurmPanel) {
-    this._slurmPanel = slurmPanel;
-  }
-
   /**
    * Create a new extension for the notebook panel widget.
    *
@@ -38,11 +30,8 @@ export class ToolbarCountdown
     context: DocumentRegistry.IContext<INotebookModel>,
   ): IDisposable {
     const countdown = new KernelCountdownWidget(panel);
-    const x = createKernelNameItemCustom(panel.sessionContext, new DialogCustom(this._slurmPanel));
-    panel.toolbar.insertItem(11, 'Slurmel', x);
     panel.toolbar.insertItem(11, 'Countdown', countdown);
     return new DisposableDelegate(() => {
-      x.dispose();
       countdown.dispose();
     });
   }

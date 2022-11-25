@@ -120,7 +120,7 @@ function activate(
   }
 
   // Add WidgetExtension to Notebook (Toolbar Countdown)
-  app.docRegistry.addWidgetExtension('Notebook', new ToolbarCountdown(slurmPanel));
+  app.docRegistry.addWidgetExtension('Notebook', new ToolbarCountdown());
 
 }
 
