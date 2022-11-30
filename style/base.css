@@ -47,19 +47,6 @@ input.slurmel-input.disabled {
 label.slurm-input-label {
   display: flex;
   /* font-size: var(--jp-ui-font-size2); */
-  margin-bottom: 12px;
-}
-
-label.slurm-timer-label {
-  display: flex;
-  /* font-size: var(--jp-ui-font-size2); */
-}
-
-div.slurm-timer-div {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
 }
 
 span.slurm-config-span {

@@ -64,7 +64,6 @@ interface ITimerState {
 }
 
 const labelClass = 'slurm-input-label';
-const labelTimerClass = 'slurm-timer-label';
 const spanClass = 'slurm-config-span';
 
 
@@ -690,7 +689,11 @@ export class AllocationTimer extends React.Component<ITimerProps, ITimerState> {
     const now = Math.floor(new Date().getTime() / 1000);
 
     // Find the distance between now and the count down date
-    const distance = Math.floor(this.props.date_endtime / 1) - now;
+    let distance = Math.floor(this.props.date_endtime / 1) - now;
+    if ( distance < 0 ) {
+      distance = 0;
+      clearInterval(this._timerID);
+    }
   
     // Time calculations for days, hours, minutes and seconds
     const hours = String(Math.floor((distance % (60 * 60 * 24)) / (60 * 60)));
@@ -720,8 +723,8 @@ export class AllocationTimer extends React.Component<ITimerProps, ITimerState> {
     const seconds = seconds_.substring(seconds_.length-2);
 
     return (
-      <div className='lm-Widget p-Widget jp-Dialog-body slurm-timer-div'>
-        <label className={labelTimerClass}>
+      <div className='lm-Widget p-Widget jp-Dialog-body'>
+        <label className={labelClass}>
           <span className={spanClass} style={spanStyle}>
             <span style={{fontWeight: 'bold'}}>{this.props.date_label}</span>
             <span style={{float: 'right'}}>{this.state.hours}:{minutes}:{seconds}</span>
