@@ -52,28 +52,31 @@ class KernelCountdownWidget extends apputils.ReactWidget {
   }
 }
 
-class RemainingTimeComp extends React.Component<{panel: NotebookPanel}, {date_show: boolean, date_endtime: any, date_label: string}> {
+class RemainingTimeComp extends React.Component<{panel: NotebookPanel}, {date_show: boolean, date_endtime: any, date_label: string, kernel_id: string}> {
   constructor(props: any) {
     super(props);
     this.state = {
       date_show: false,
       date_endtime: 0,
-      date_label: "Remaining time: "
+      date_label: "Remaining time: ",
+      kernel_id: ""
     }
-    this.props.panel.sessionContext.connectionStatusChanged.connect(this._connectionStatusChanged, this);
+    this.props.panel.sessionContext.kernelChanged.connect(this._kernelChanged, this);
   }
   
-  async _connectionStatusChanged(a: any, b: any) {
+  async _kernelChanged(a: any, b: any) {
     let found_kernel = false;
-    if ( a._prevKernelName == "slurm-provisioner-kernel" && b == "connected" ) {
-      const kernelID = a._session._id;
+    console.log(b);
+    if ( b.newValue && b.newValue._connectionStatus == "connected") {
+      const kernelID = b.newValue._id;
       const config_system = await sendGetRequest();
       for ( let x in config_system.allocations ) {
         if ( (! found_kernel) && config_system.allocations[x].kernel_ids.includes(kernelID) ){
           this.setState({
             date_endtime: config_system.allocations[x].endtime,
             date_show: true,
-            date_label: "Remaining time ( allocation " + String(x) + " ): "
+            date_label: "Remaining time ( allocation " + String(x) + " ): ",
+            kernel_id: kernelID
           })
           found_kernel = true;
         }
