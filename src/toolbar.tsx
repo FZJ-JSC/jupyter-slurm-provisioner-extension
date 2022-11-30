@@ -62,21 +62,27 @@ class RemainingTimeComp extends React.Component<{panel: NotebookPanel}, {date_sh
       kernel_id: ""
     }
     this.props.panel.sessionContext.kernelChanged.connect(this._kernelChanged, this);
+    this.props.panel.sessionContext.connectionStatusChanged.connect(this._connectionStatusChanged, this);
   }
   
   async _kernelChanged(a: any, b: any) {
+    if ( b.newValue ) {
+      const kernel_id = b.newValue._id;
+      this.setState({kernel_id});
+    }
+  }
+
+  async _connectionStatusChanged(a: any, b: any) {
     let found_kernel = false;
-    console.log(b);
-    if ( b.newValue && b.newValue._connectionStatus == "connected") {
-      const kernelID = b.newValue._id;
+    if ( a._prevKernelName == "slurm-provisioner-kernel" && b == "connected" ) {
+      const kernelID = this.state.kernel_id;
       const config_system = await sendGetRequest();
       for ( let x in config_system.allocations ) {
         if ( (! found_kernel) && config_system.allocations[x].kernel_ids.includes(kernelID) ){
           this.setState({
             date_endtime: config_system.allocations[x].endtime,
             date_show: true,
-            date_label: "Remaining time ( allocation " + String(x) + " ): ",
-            kernel_id: kernelID
+            date_label: "Remaining time ( allocation " + String(x) + " ): "
           })
           found_kernel = true;
         }
