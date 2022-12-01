@@ -20,6 +20,7 @@ import { slurmelIcon } from './icon';
 import { sendGetRequest } from './handler';
 import { SlurmPanel } from './widgets';
 
+
 /**
  * The command IDs used by the react-widget plugin
  */
@@ -69,8 +70,8 @@ function activate(
       available_kernel_names[kernel.display_name] = kernel.argv;
     }
   }
-
-  const slurmPanel = new SlurmPanel(commands, available_kernels);
+  
+  const slurmPanel = new SlurmPanel(commands, available_kernels, serviceManager.sessions);
   restorer.add(slurmPanel, 'slurm-config');
   app.shell.add(slurmPanel, 'left', { rank: 501 });
   
@@ -98,7 +99,7 @@ function activate(
         Dialog.okButton({ label: 'Save' })
       ];
 
-      const config_system = await sendGetRequest();
+      const config_system = await sendGetRequest('all');
       const body = await getBody(config_system, available_kernels)
       showDialog({
         title: getTitle(config_system.documentationhref),

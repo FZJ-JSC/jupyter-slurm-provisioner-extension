@@ -76,7 +76,7 @@ class RemainingTimeComp extends React.Component<{panel: NotebookPanel}, {date_sh
     let found_kernel = false;
     if ( a._prevKernelName == "slurm-provisioner-kernel" && b == "connected" ) {
       const kernelID = this.state.kernel_id;
-      const config_system = await sendGetRequest();
+      const config_system = await sendGetRequest('local');
       for ( let x in config_system.allocations ) {
         if ( (! found_kernel) && config_system.allocations[x].kernel_ids.includes(kernelID) ){
           this.setState({

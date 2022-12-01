@@ -11,7 +11,45 @@ from tornado.httpclient import AsyncHTTPClient
 from tornado.httpclient import HTTPRequest
 
 
-class RouteHandler(APIHandler):
+current_config_file = f"{os.environ.get('HOME', '')}/.local/share/jupyter/kernels/slurm-provisioner-kernel/kernel.json"
+current_config = [0, {}]
+allocations_file = f"{os.environ.get('HOME', '')}/.local/share/jupyter/runtime/slurm_provisioner.json"
+allocations = [0, {}]
+
+def get_current_config(logger):
+    try:
+        last_edit = os.stat(current_config_file).st_mtime
+        if last_edit > current_config[0]:
+            current_config[0] = last_edit
+            with open(current_config_file, "r") as f:
+                kernel_json = json.load(f)
+            current_config[1] = kernel_json.get("metadata", {}).get("kernel_provisioner", {}).get("config", {})
+    except Exception:
+        logger.exception("Could not read slurm-provisioner-kernel/kernel.json file")
+    return current_config[1]
+
+def get_allocations(logger):
+    try:
+        last_edit = os.stat(allocations_file).st_mtime
+        if last_edit > allocations[0]:
+            allocations[0] = last_edit
+            with open(allocations_file, "r") as f:
+                allocations[1] = json.load(f)
+    except Exception:
+        logger.exception("Could not read runtime/slurm_provisioner.json file")
+    return allocations[1]
+
+class UpdateLocalFiles(APIHandler):
+    @web.authenticated
+    async def get(self):
+        body = {
+            "current_config": get_current_config(self.log),
+            "allocations": get_allocations(self.log)
+        }
+        self.finish(json.dumps(body))
+
+
+class UpdateAll(APIHandler):
     @web.authenticated
     async def get(self):
         headers = {
@@ -41,26 +79,12 @@ class RouteHandler(APIHandler):
             self.log.exception("Slurmel: Could not receive OptionsForm information")
             body = {}
         
-        try:
-            with open(f"{os.environ.get('HOME', '')}/.local/share/jupyter/runtime/slurm_provisioner.json", "r") as f:
-                allocations = json.load(f)
-            body["allocations"] = allocations
-        except Exception:
-            self.log.warning("Could not read slurm_provisioner.json storage file")
-            body["allocations"] = {}
-
-        # add current configuration to return
-        try:
-            with open(f"{os.environ.get('HOME', '')}/.local/share/jupyter/kernels/slurm-provisioner-kernel/kernel.json", "r") as f:
-                kernel_json = json.load(f)
-            body["current_config"] = kernel_json.get("metadata", {}).get("kernel_provisioner", {}).get("config", {})
-        except Exception:
-            self.log.warning("Could not read kernel.json file")
-            body["current_config"] = {}
-
+        body["allocations"] = get_allocations(self.log)
+        body["current_config"] = get_current_config(self.log)
         body["documentationhref"] = os.environ.get("SLURMEL_DOCUMENTATION_HREF", "slurmeldocumentation")
         self.finish(json.dumps(body))
-    
+
+class ConfigureHandler(APIHandler):    
     @web.authenticated
     async def post(self):
         # load current json kernel file
@@ -127,13 +151,17 @@ def setup_kernel():
                 f.write(base64.b64decode(logos[1]))
             with open(f"{kernel_path}/logo-svg.svg", "wb") as f:
                 f.write(base64.b64decode(logos[2]))
-            
-            
-
+   
 
 def setup_handlers(web_app):
     host_pattern = ".*$"
     base_url = web_app.settings["base_url"]
-    route_pattern = url_path_join(base_url, "slurm-provisioner", "configure")
-    handlers = [(route_pattern, RouteHandler)]
-    web_app.add_handlers(host_pattern, handlers)
+    configure_route = url_path_join(base_url, "slurm-provisioner", "configure")
+    updatelocal_route = url_path_join(base_url, "slurm-provisioner", "local")
+    updateall_route = url_path_join(base_url, "slurm-provisioner", "all")
+    configure = [(configure_route, ConfigureHandler)]
+    local = [(updatelocal_route, UpdateLocalFiles)]
+    all = [(updateall_route, UpdateAll)]
+    web_app.add_handlers(host_pattern, configure)
+    web_app.add_handlers(host_pattern, local)
+    web_app.add_handlers(host_pattern, all)

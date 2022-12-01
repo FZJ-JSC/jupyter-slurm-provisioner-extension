@@ -3,10 +3,10 @@ import { ReactWidget } from '@jupyterlab/apputils';
 import { CommandRegistry } from '@lumino/commands';
 import { Message } from '@lumino/messaging';
 import { ISignal, Signal } from '@lumino/signaling';
+import { Session, SessionManager } from '@jupyterlab/services';
 
 import { sendGetRequest } from './handler';
 import { slurmelIcon } from './icon';
-
 
 export type OptionsForm = {
   dropdown_lists: {[key: string]: any},
@@ -71,12 +71,15 @@ export class SlurmPanel extends ReactWidget {
   private _available_kernels: any;
   private _commands: CommandRegistry;
   private _stateChanged = new Signal<SlurmPanel, OptionsForm>(this);
+  private _lastUpdate: number = 0;
 
   constructor(
     commands: CommandRegistry,
-    available_kernels: any
+    available_kernels: any,
+    sessionManager: SessionManager,
     ) {
     super();
+    
     this.id = 'slurm-wrapper-widget';
     this.addClass('slurm-wrapper-panel');
     this.title.icon = slurmelIcon;
@@ -84,6 +87,32 @@ export class SlurmPanel extends ReactWidget {
 
     this._available_kernels = available_kernels;
     this._commands = commands;
+    
+    sessionManager.runningChanged.connect(this.onChange, this);
+  }
+
+  async delay(ms: number) {
+    return await new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async onChange(session_manager: SessionManager, model_list:Array<Session.IModel>) {
+    // If the status of one kernel changes, we want to check the slurmprovisioner files
+    // Multiple changes should not lead to more requests than one per 2s.
+    // If the Panel is not visible, we don't have to update.
+    for(let i = 0; i < 60; i++){
+      if(this.isVisible) {
+        const d = new Date();
+        if ( d.getTime() > this._lastUpdate + 2000) {
+          this._lastUpdate = d.getTime();
+          const data = await sendGetRequest('local');
+          this._stateChanged.emit(data);
+        }
+        await this.delay(2000);
+      } else {
+        // shorter delay if not visible
+        await this.delay(500);
+      }
+    }
   }
 
   public get stateChanged(): ISignal<SlurmPanel, OptionsForm> {
@@ -93,7 +122,7 @@ export class SlurmPanel extends ReactWidget {
   async onUpdateRequest(msg: Message): Promise<void> {
     super.onUpdateRequest(msg);
     // Emit change upon update
-    const data = await sendGetRequest();
+    const data = await sendGetRequest('all');
     this._stateChanged.emit(data);
   }
 
@@ -577,7 +606,7 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
     }
   }
 
-  private _updateState(emitter: SlurmPanel, data: OptionsForm): void {
+  private _updateState(emitter: SlurmPanel | null, data: OptionsForm): void {
     // console.log(data);
     const current_config = data.current_config;
   

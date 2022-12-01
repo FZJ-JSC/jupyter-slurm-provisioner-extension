@@ -71,7 +71,7 @@ export async function sendPostRequest(config: any) {
   });
 }
 
-export async function sendGetRequest(): Promise<OptionsForm> {
+export async function sendGetRequest(path: string): Promise<OptionsForm> {
   let config_system: OptionsForm = {
     dropdown_lists: {},
     resources: {},
@@ -79,7 +79,7 @@ export async function sendGetRequest(): Promise<OptionsForm> {
     documentationhref: "",
     current_config: {}
   }
-  await requestAPI<any>('configure').then(data => {
+  await requestAPI<any>(path).then(data => {
     config_system = data;
   }).catch(reason => {
     console.error(
