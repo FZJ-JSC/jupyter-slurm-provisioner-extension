@@ -3,10 +3,13 @@ import { ReactWidget } from '@jupyterlab/apputils';
 import { CommandRegistry } from '@lumino/commands';
 import { Message } from '@lumino/messaging';
 import { ISignal, Signal } from '@lumino/signaling';
-import { Session, SessionManager } from '@jupyterlab/services';
 
-import { sendGetRequest } from './handler';
+import { sendCancelRequest, sendGetRequest } from './handler';
 import { slurmelIcon } from './icon';
+
+import Collapsible from 'react-collapsible';
+// import { IconButton } from '@mui/material';
+// import DeleteIcon from '@mui/icons-material/Delete';
 
 export type OptionsForm = {
   dropdown_lists: {[key: string]: any},
@@ -28,6 +31,37 @@ interface ISlurmConfigState {
   runtime: string;
   reservation: string;
   endtime: string;
+};
+
+interface IAllocation {
+  [id: string]: {
+    config: {
+      gpus: string,
+      jobid: string,
+      kernel: string,
+      kernel_argv: Array<string>,
+      kernel_language: string,
+      node: string,
+      nodes: string,
+      partition: string,
+      project: string,
+      reservation: string,
+      runtime: string,
+    },
+    endtime: number,
+    kernel_ids: Array<string>,
+    nodelist: Array<string>,
+    state: string
+  }
+};
+
+interface IKernelInfoState { 
+  empty: Boolean;
+  allocation_infos: Array<{
+    id: string,
+    state: string,
+    kernels: number
+  }>;
 };
 
 interface IDropdownProps {
@@ -71,12 +105,11 @@ export class SlurmPanel extends ReactWidget {
   private _available_kernels: any;
   private _commands: CommandRegistry;
   private _stateChanged = new Signal<SlurmPanel, OptionsForm>(this);
-  private _lastUpdate: number = 0;
+
 
   constructor(
     commands: CommandRegistry,
     available_kernels: any,
-    sessionManager: SessionManager,
     ) {
     super();
     
@@ -88,25 +121,20 @@ export class SlurmPanel extends ReactWidget {
     this._available_kernels = available_kernels;
     this._commands = commands;
     
-    sessionManager.runningChanged.connect(this.onChange, this);
+    this.updateInfos();
   }
 
   async delay(ms: number) {
     return await new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async onChange(session_manager: SessionManager, model_list:Array<Session.IModel>) {
-    // If the status of one kernel changes, we want to check the slurmprovisioner files
-    // Multiple changes should not lead to more requests than one per 2s.
-    // If the Panel is not visible, we don't have to update.
-    for(let i = 0; i < 60; i++){
+  async updateInfos() {
+    // Poll for file changes
+    // do not poll if panel is not visible
+    while ( true ) {
       if(this.isVisible) {
-        const d = new Date();
-        if ( d.getTime() > this._lastUpdate + 2000) {
-          this._lastUpdate = d.getTime();
-          const data = await sendGetRequest('local');
-          this._stateChanged.emit(data);
-        }
+        const data = await sendGetRequest('local');
+        this._stateChanged.emit(data);
         await this.delay(2000);
       } else {
         // shorter delay if not visible
@@ -127,12 +155,83 @@ export class SlurmPanel extends ReactWidget {
   }
 
   render(): JSX.Element {
+    // let x = <Collapsible><p>a</p></Collapsible>''
     return (
       <React.Fragment>
-        <h2>Current Configuration</h2>
-        <CurrentSlurmConfig panel={this} available_kernels={this._available_kernels}/>
-        <SlurmConfigurator commands={this._commands}/>
+        <Collapsible trigger="Current Configuration">
+          <CurrentSlurmConfig panel={this} available_kernels={this._available_kernels}/>
+          <SlurmConfigurator commands={this._commands}/>
+        </Collapsible>
+        <Collapsible trigger="Kernel Allocations">
+          <KernelInfos panel={this}/>
+        </Collapsible>
       </React.Fragment>
+    )
+  }
+}
+// export class SlurmConfigurator extends React.Component<{commands: CommandRegistry}> {
+export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInfoState> {
+  constructor(props: any) {
+    super(props);
+    this.props.panel.stateChanged.connect(this._updateState, this);
+
+    // this.cancelAllocation = this.cancelAllocation.bind(this);
+    this.state = {
+      empty: false,
+      allocation_infos: []
+    }
+  }
+
+  private _updateState(emitter: SlurmPanel, data: OptionsForm): void {
+    const allocations: IAllocation = data.allocations;
+    if ( Object.keys(allocations).length === 0 ) {
+      this.setState({
+        empty: true,
+      })
+    } else {
+      let allocation_infos = [];
+      for ( let key in allocations ) {
+        allocation_infos.push({
+          id: key,
+          kernels: Object.keys(allocations[key].kernel_ids).length,
+          state: allocations[key].state
+        });
+      }
+      this.setState({
+        empty: false,
+        allocation_infos
+      });
+    }
+  }
+
+  cancelAllocation(jobid: string) {
+    console.log("Cancel ");
+    sendCancelRequest(jobid);
+  }
+
+  render() {
+    // Nothing configured yet.
+    if (this.state.empty) {
+      return (
+        <div>There are no allocations available.</div>
+      )
+    }
+    let content = [];
+    for ( let key in this.state.allocation_infos ) {
+      content.push(
+        <div>
+          <p>{this.state.allocation_infos[key].id} (#{this.state.allocation_infos[key].kernels}): {this.state.allocation_infos[key].state}</p>
+          <button onClick={() => this.cancelAllocation(this.state.allocation_infos[key].id)}>
+            Kill
+          </button>
+        </div>
+      );
+    }
+    // Return current configuration.
+    return (
+      <div>
+        {content}
+      </div>
     )
   }
 }
@@ -606,7 +705,7 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
     }
   }
 
-  private _updateState(emitter: SlurmPanel | null, data: OptionsForm): void {
+  private _updateState(emitter: SlurmPanel, data: OptionsForm): void {
     // console.log(data);
     const current_config = data.current_config;
   

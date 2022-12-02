@@ -2,6 +2,7 @@ import base64
 import json
 import os
 import shutil
+import subprocess
 
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
@@ -102,6 +103,32 @@ class ConfigureHandler(APIHandler):
         kernel["metadata"]["kernel_provisioner"]["config"] = new_config
         with open(f"{kernel_path}/kernel.json", "w") as f:
             f.write(json.dumps(kernel, indent=4, sort_keys=True))
+        self.set_status(200)
+
+class SCancelHandler(APIHandler):    
+    @web.authenticated
+    async def post(self):
+        if self.request.body:
+            body = json.loads(self.request.body.decode('utf8', 'replace'))
+        else:
+            self.log.error("Slurmel: No body sent")
+            self.set_status(400)
+            return
+
+        allocations_file = f"{os.environ.get('HOME', '')}/.local/share/jupyter/runtime/slurm_provisioner.json"
+        with open(allocations_file, "r") as f:
+            allocs = json.load(f)
+
+        jobid = body.get("jobid", None)
+        if jobid in allocs.keys():
+            del allocs[body["jobid"]]
+        
+        with open(allocations_file, "w") as f:
+            f.write(json.dumps(allocs, indent=2, sort_keys=True))
+        
+        if jobid:
+            scancel_cmd = ["scancel", jobid]
+            subprocess.check_output(scancel_cmd)
         self.set_status(200)
 
 def default_kernel():

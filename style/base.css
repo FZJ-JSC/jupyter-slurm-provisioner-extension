@@ -62,3 +62,13 @@ select.slurmel-select {
   color: var(--jp-ui-font-color0);
   padding: 0 25px 0 8px;
 }
+
+.Collapsible {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid black;
+}
+
+.Collapsible > span {
+  background: var(--jp-layout-color2);
+}

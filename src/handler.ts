@@ -88,3 +88,13 @@ export async function sendGetRequest(path: string): Promise<OptionsForm> {
     });
   return config_system;
 }
+
+
+export async function sendCancelRequest(jobid: string) {
+  await requestAPI<any>('scancel', {
+    body: JSON.stringify({'jobid': jobid}),
+    method: "POST"
+  }).catch(reason => {
+    alert("Could not stop Allocation with jobid " + jobid);
+  });
+}

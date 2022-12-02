@@ -71,7 +71,7 @@ function activate(
     }
   }
   
-  const slurmPanel = new SlurmPanel(commands, available_kernels, serviceManager.sessions);
+  const slurmPanel = new SlurmPanel(commands, available_kernels);
   restorer.add(slurmPanel, 'slurm-config');
   app.shell.add(slurmPanel, 'left', { rank: 501 });
   
