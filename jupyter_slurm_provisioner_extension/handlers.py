@@ -186,9 +186,12 @@ def setup_handlers(web_app):
     configure_route = url_path_join(base_url, "slurm-provisioner", "configure")
     updatelocal_route = url_path_join(base_url, "slurm-provisioner", "local")
     updateall_route = url_path_join(base_url, "slurm-provisioner", "all")
+    scancel_route = url_path_join(base_url, "slurm-provisioner", "scancel")
     configure = [(configure_route, ConfigureHandler)]
     local = [(updatelocal_route, UpdateLocalFiles)]
     all = [(updateall_route, UpdateAll)]
+    scancel = [(scancel_route, SCancelHandler)]
     web_app.add_handlers(host_pattern, configure)
     web_app.add_handlers(host_pattern, local)
     web_app.add_handlers(host_pattern, all)
+    web_app.add_handlers(host_pattern, scancel)
