@@ -159,11 +159,11 @@ export class SlurmPanel extends ReactWidget {
     // let x = <Collapsible><p>a</p></Collapsible>''
     return (
       <React.Fragment>
-        <Collapsible trigger="Current Configuration">
+        <Collapsible open={true} trigger="Current Configuration">
           <CurrentSlurmConfig panel={this} available_kernels={this._available_kernels}/>
           <SlurmConfigurator commands={this._commands}/>
         </Collapsible>
-        <Collapsible trigger="Kernel Allocations">
+        <Collapsible open={true} trigger="Kernel Allocations">
           <KernelInfos panel={this}/>
         </Collapsible>
       </React.Fragment>
