@@ -97,6 +97,7 @@ interface ITimerState {
   seconds: string;
 }
 
+const baseBtnClass = 'slurm-btn';
 const labelClass = 'slurm-input-label';
 const spanClass = 'slurm-config-span';
 
@@ -217,11 +218,12 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
       )
     }
     let content = [];
+    let btnClass = baseBtnClass + " slurm-kill-btn";
     for ( let key in this.state.allocation_infos ) {
       content.push(
-        <div>
-          <p>{this.state.allocation_infos[key].id} (#{this.state.allocation_infos[key].kernels}): {this.state.allocation_infos[key].state}</p>
-          <button onClick={() => this.cancelAllocation(this.state.allocation_infos[key].id)}>
+        <div style={{display: "flex", justifyContent: "space-between"}}>
+          <span>{this.state.allocation_infos[key].id} (#{this.state.allocation_infos[key].kernels}): {this.state.allocation_infos[key].state}</span>
+          <button className={btnClass} onClick={() => this.cancelAllocation(this.state.allocation_infos[key].id)}>
             Kill
           </button>
         </div>
@@ -229,9 +231,9 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
     }
     // Return current configuration.
     return (
-      <div>
+      <React.Fragment>
         {content}
-      </div>
+      </React.Fragment>
     )
   }
 }
@@ -783,8 +785,9 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
  */
 export class SlurmConfigurator extends React.Component<{commands: CommandRegistry}> {
   render() {
+    let btnClass = baseBtnClass + " slurm-config-btn";
     return (
-      <button className="slurm-config-btn" style={{marginTop: '12px'}} onClick={() => this.props.commands.execute('open-slurm-config-dialog')}>
+      <button className={btnClass} style={{marginTop: '12px'}} onClick={() => this.props.commands.execute('open-slurm-config-dialog')}>
         Configure
       </button>
     )

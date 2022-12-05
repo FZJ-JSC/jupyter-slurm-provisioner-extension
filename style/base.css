@@ -13,15 +13,22 @@
   text-transform: uppercase;
 }
 
-button.slurm-config-btn {
-  background-color: var(--md-blue-500);
+button.slurm-btn {
   border: 0;
   border-radius: 3px;
   box-sizing: border-box;
   color: white;
   font-size: var(--jp-ui-font-size1);
   height: 28px;
+}
+
+button.slurm-config-btn {
+  background-color: var(--md-blue-500);
   width: 100%;
+}
+
+button.slurm-kill-btn {
+  background-color: var(--md-red-500);
 }
 
 input.slurmel-input {
