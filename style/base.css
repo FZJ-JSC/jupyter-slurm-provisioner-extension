@@ -72,6 +72,21 @@ select.slurmel-select {
   padding: 10px;
 }
 
+.Collapsible__trigger:after {
+  font-family: 'FontAwesome';
+  content: '\f107';
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  display: block;
+  transition: transform 300ms;
+  color: var(--jp-content-font-color2);
+}
+
+.Collapsible__trigger.is-open:after {
+  transform: rotateZ(180deg);
+}
+
 .Collapsible__contentInner {
   padding: 10px;
   border: 1px solid var(--jp-border-color2);
