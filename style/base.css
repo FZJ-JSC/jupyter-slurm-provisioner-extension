@@ -29,6 +29,7 @@ button.slurm-config-btn {
 
 button.slurm-kill-btn {
   background-color: var(--md-red-500);
+  margin-bottom: 2px;
 }
 
 input.slurmel-input {
@@ -97,4 +98,9 @@ select.slurmel-select {
   padding: 10px;
   border: 1px solid var(--jp-border-color2);
   border-top: 0;
+}
+
+.kernel-alloc-div {
+  display: flex;
+  align-items: center;
 }

@@ -222,7 +222,7 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
     for ( let key in this.state.allocation_infos ) {
       content.push(
         <div style={{display: "flex", justifyContent: "space-between"}}>
-          <span>{this.state.allocation_infos[key].id} (#{this.state.allocation_infos[key].kernels}): {this.state.allocation_infos[key].state}</span>
+          <div className="kernel-alloc-div">{this.state.allocation_infos[key].id} (#{this.state.allocation_infos[key].kernels}): {this.state.allocation_infos[key].state}</div>
           <button className={btnClass} onClick={() => this.cancelAllocation(this.state.allocation_infos[key].id)}>
             Kill
           </button>
