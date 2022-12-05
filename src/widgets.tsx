@@ -761,7 +761,7 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
     }
     // Return current configuration.
     return (
-      <div>
+      <React.Fragment>
         <InfoComponent label="Allocation" value={this.state.allocation} />
         <InfoComponent label="Node" value={this.state.node} />
         <InfoComponent label="Kernel" value={kernelName} />
@@ -773,7 +773,7 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
         {this.state.reservation != "None" && 
             <InfoComponent label="Reservation" value={this.state.reservation} />}
         {this.state.endtime && <AllocationTimer key_="timer" date_label="Time left: " date_endtime={this.state.endtime} />}
-      </div>
+      </React.Fragment>
     )
   }
 }
@@ -784,11 +784,9 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
 export class SlurmConfigurator extends React.Component<{commands: CommandRegistry}> {
   render() {
     return (
-      <div>
-        <button className="slurm-config-btn" onClick={() => this.props.commands.execute('open-slurm-config-dialog')}>
-          Configure
-        </button>
-      </div>
+      <button className="slurm-config-btn" style={{marginTop: '12px'}} onClick={() => this.props.commands.execute('open-slurm-config-dialog')}>
+        Configure
+      </button>
     )
   }
 }

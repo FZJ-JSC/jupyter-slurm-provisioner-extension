@@ -3,11 +3,6 @@
   background: var(--jp-layout-color1);
 }
 
-.slurm-wrapper-panel > div {
-  margin: 0px;
-  padding: 8px 12px;
-}
-
 .slurm-wrapper-panel h2 {
   border-bottom: var(--jp-border-width) solid var(--jp-border-color2);
   font-size: var(--jp-ui-font-size0);
@@ -66,9 +61,19 @@ select.slurmel-select {
 .Collapsible {
   display: flex;
   flex-direction: column;
-  border: 2px solid black;
 }
 
-.Collapsible > span {
+.Collapsible__trigger {
   background: var(--jp-layout-color2);
+  font-weight: 400;
+  text-decoration: none;
+  position: relative;
+  border: 1px solid var(--jp-border-color2);
+  padding: 10px;
+}
+
+.Collapsible__contentInner {
+  padding: 10px;
+  border: 1px solid var(--jp-border-color2);
+  border-top: 0;
 }
