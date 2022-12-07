@@ -46,15 +46,15 @@ def sanitize_allocations(logger):
     config = get_current_config(logger)
     now = datetime.now().timestamp()
     current_jobid = config.get("metadata", {}).get("kernel_provisioner", {}).get("config", {}).get("jobid", "None")
-    if current_jobid != "None":
-        # If you've selected an existing allocation, and the allocation is no longer running, we'll reset the current config partially
-        allocations = get_allocations(logger)
-        if allocations.get(current_jobid, {}).get("endtime", now) < now:
-            # Endtime of current jobid is in the past. So we'll update the current config (kernel.json)
-            config["metadata"]["kernel_provisioner"]["config"]["jobid"] = "None"
-            config["metadata"]["kernel_provisioner"]["config"]["node"] = "None"
-            with open(current_config_file, "w") as f:
-                f.write(json.dumps(config, indent=4, sort_keys=True))
+    
+    # If the selected allocation is not available, we'll reset the current config partially
+    allocations = get_allocations(logger)
+    if current_jobid not in allocations.keys() or allocations.get(current_jobid, {}).get("endtime", now) < now:
+        # Endtime of current jobid is in the past. So we'll update the current config (kernel.json)
+        config["metadata"]["kernel_provisioner"]["config"]["jobid"] = "None"
+        config["metadata"]["kernel_provisioner"]["config"]["node"] = "None"
+        with open(current_config_file, "w") as f:
+            f.write(json.dumps(config, indent=4, sort_keys=True))
 
 class UpdateLocalFiles(APIHandler):
     @web.authenticated
