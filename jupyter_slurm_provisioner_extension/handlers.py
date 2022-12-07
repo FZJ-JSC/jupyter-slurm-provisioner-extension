@@ -49,19 +49,26 @@ def sanitize_allocations(logger):
     
     # If the selected allocation is not available, we'll reset the current config partially
     allocations = get_allocations(logger)
-    if current_jobid != "None" and (current_jobid not in allocations.keys() or allocations.get(current_jobid, {}).get("endtime", now) < now):
-        # Endtime of current jobid is in the past. So we'll update the current config (kernel.json)
-        config["jobid"] = "None"
-        config["node"] = "None"
-        with open(current_config_file, "r") as f:
-            kernel_json = json.load(f)
-        if "metadata" not in kernel_json.keys():
-            kernel_json["metadata"] = {}
-        if "kernel_provisioner" not in kernel_json["metadata"].keys():
-            kernel_json["metadata"]["kernel_provisioner"] = {}
-        kernel_json["metadata"]["kernel_provisioner"]["config"] = config
-        with open(current_config_file, "w") as f:
-            f.write(json.dumps(kernel_json, indent=4, sort_keys=True))
+        
+    # a job must be selected
+    if current_jobid != "None":
+        endtime = allocations.get(current_jobid, {}).get("endtime", now)
+        # an endtime must be set (if it's null/None, it's not started yet)
+        if endtime:
+            # selected job, which has been run in the past, is not in allocations or finished
+            if current_jobid not in allocations.keys() or endtime < now:
+                # Endtime of current jobid is in the past. So we'll update the current config (kernel.json)
+                config["jobid"] = "None"
+                config["node"] = "None"
+                with open(current_config_file, "r") as f:
+                    kernel_json = json.load(f)
+                if "metadata" not in kernel_json.keys():
+                    kernel_json["metadata"] = {}
+                if "kernel_provisioner" not in kernel_json["metadata"].keys():
+                    kernel_json["metadata"]["kernel_provisioner"] = {}
+                kernel_json["metadata"]["kernel_provisioner"]["config"] = config
+                with open(current_config_file, "w") as f:
+                    f.write(json.dumps(kernel_json, indent=4, sort_keys=True))
 
 class UpdateLocalFiles(APIHandler):
     @web.authenticated
