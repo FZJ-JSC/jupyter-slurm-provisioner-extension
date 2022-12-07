@@ -7,6 +7,7 @@ import subprocess
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 
+from datetime import datetime
 from tornado import web
 from tornado.httpclient import AsyncHTTPClient
 from tornado.httpclient import HTTPRequest
@@ -40,9 +41,25 @@ def get_allocations(logger):
         logger.exception("Could not read runtime/slurm_provisioner.json file")
     return allocations[1]
 
+def sanitize_allocations(logger):
+    # get current config
+    config = get_current_config(logger)
+    now = datetime.now().timestamp()
+    current_jobid = config.get("metadata", {}).get("kernel_provisioner", {}).get("config", {}).get("jobid", "None")
+    if current_jobid != "None":
+        # If you've selected an existing allocation, and the allocation is no longer running, we'll reset the current config partially
+        allocations = get_allocations(logger)
+        if allocations.get(current_jobid, {}).get("endtime", now) < now:
+            # Endtime of current jobid is in the past. So we'll update the current config (kernel.json)
+            config["metadata"]["kernel_provisioner"]["config"]["jobid"] = "None"
+            config["metadata"]["kernel_provisioner"]["config"]["node"] = "None"
+            with open(current_config_file, "w") as f:
+                f.write(json.dumps(config, indent=4, sort_keys=True))
+
 class UpdateLocalFiles(APIHandler):
     @web.authenticated
     async def get(self):
+        sanitize_allocations(self.log)
         body = {
             "current_config": get_current_config(self.log),
             "allocations": get_allocations(self.log)
