@@ -11,3 +11,4 @@ project_short_description: Configure the Slurm kernel in JupyterLab
 python_name: jupyter_slurm_provisioner_extension
 repository: https://github.com/FZJ-JSC/jupyter-slurm-provisioner-extension.git
 test: false
+
