@@ -19,15 +19,15 @@ export async function requestAPI<T>(
   const settings = ServerConnection.makeSettings();
   const requestUrl = URLExt.join(
     settings.baseUrl,
-    'slurm-provisioner', // API Namespace
+    'jupyter-slurm-provisioner-extension', // API Namespace
     endPoint
   );
 
   let response: Response;
   try {
     response = await ServerConnection.makeRequest(requestUrl, init, settings);
-  } catch (error: any) {
-    throw new ServerConnection.NetworkError(error);
+  } catch (error) {
+    throw new ServerConnection.NetworkError(error as any);
   }
 
   let data: any = await response.text();

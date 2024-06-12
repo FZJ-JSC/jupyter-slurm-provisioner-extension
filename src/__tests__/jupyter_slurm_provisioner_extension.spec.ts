@@ -2,7 +2,7 @@
  * Example of [Jest](https://jestjs.io/docs/getting-started) unit tests
  */
 
-describe('Slurm Provisioner configurator', () => {
+describe('jupyter-slurm-provisioner-extension', () => {
   it('should be tested', () => {
     expect(1 + 1).toEqual(2);
   });
