@@ -12,9 +12,9 @@ from tornado import web
 from tornado.httpclient import AsyncHTTPClient
 from tornado.httpclient import HTTPRequest
 
-current_config_file = f"{os.environ.get('HOME', '')}/.local/share/jupyter/kernels/slurm-provisioner-kernel/kernel.json"
+current_config_file = os.path.expanduser("~/.local/share/jupyter/kernels/slurm-provisioner-kernel/kernel.json")
 current_config = [0, {}]
-allocations_file = f"{os.environ.get('HOME', '')}/.local/share/jupyter/runtime/slurm_provisioner.json"
+allocations_file = os.path.expanduser("~/.local/share/jupyter/runtime/slurm_provisioner.json")
 allocations = [0, {}]
 
 
@@ -26,7 +26,7 @@ def get_current_config(logger):
             with open(current_config_file, "r") as f:
                 kernel_json = json.load(f)
             current_config[1] = kernel_json.get("metadata", {}).get("kernel_provisioner", {}).get("config", {})
-    except FileNotFoundError:
+    except Exception:
         logger.exception("Could not read slurm-provisioner-kernel/kernel.json file")
     return current_config[1]
 
@@ -38,7 +38,7 @@ def get_allocations(logger):
             allocations[0] = last_edit
             with open(allocations_file, "r") as f:
                 allocations[1] = json.load(f)
-    except FileNotFoundError:
+    except Exception:
         logger.exception("Could not read runtime/slurm_provisioner.json file")
     return allocations[1]
 
@@ -111,7 +111,7 @@ class UpdateAll(APIHandler):
                 body = json.loads(resp.body.decode('utf8', 'replace'))
             else:
                 body = {}
-        except Exception as e:
+        except Exception:
             self.log.exception("Slurmel: Could not receive OptionsForm information")
             body = {}
 
@@ -221,17 +221,13 @@ def setup_kernel():
 
 
 def setup_handlers(web_app):
-    host_pattern = ".*$"
-    base_url = web_app.settings["base_url"]
-    configure_route = url_path_join(base_url, "slurm-provisioner", "configure")
-    updatelocal_route = url_path_join(base_url, "slurm-provisioner", "local")
-    updateall_route = url_path_join(base_url, "slurm-provisioner", "all")
-    scancel_route = url_path_join(base_url, "slurm-provisioner", "scancel")
-    configure = [(configure_route, ConfigureHandler)]
-    local = [(updatelocal_route, UpdateLocalFiles)]
-    all = [(updateall_route, UpdateAll)]
-    scancel = [(scancel_route, SCancelHandler)]
-    web_app.add_handlers(host_pattern, configure)
-    web_app.add_handlers(host_pattern, local)
-    web_app.add_handlers(host_pattern, all)
-    web_app.add_handlers(host_pattern, scancel)
+    base_url = url_path_join(
+        web_app.settings["base_url"],
+        "slurm-provisioner"  # API Namespace
+    )
+    web_app.add_handlers(".*$", [
+        (url_path_join(base_url, "configure"), ConfigureHandler),
+        (url_path_join(base_url, "local"),     UpdateLocalFiles),
+        (url_path_join(base_url, "all"),       UpdateAll),
+        (url_path_join(base_url, "scancel"),   SCancelHandler)
+    ])

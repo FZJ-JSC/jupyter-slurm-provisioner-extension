@@ -29,10 +29,11 @@ def _load_jupyter_server_extension(server_app):
 
     Parameters
     ----------
-    server_app: jupyterlab.labapp.LabApp
+    server_app: jupyter_server.serverapp.ServerApp
         JupyterLab application instance
     """
     setup_kernel()
     setup_handlers(server_app.web_app)
+
     name = "jupyter_slurm_provisioner_extension"
     server_app.log.info(f"Registered {name} server extension")

@@ -12,15 +12,15 @@ import Collapsible from 'react-collapsible';
 // import DeleteIcon from '@mui/icons-material/Delete';
 
 export type OptionsForm = {
-  dropdown_lists: {[key: string]: any},
-  resources: any,
-  allocations: any,
-  documentationhref: string,
-  current_config: any
-}
+  dropdown_lists: { [key: string]: any };
+  resources: any;
+  allocations: any;
+  documentationhref: string;
+  current_config: any;
+};
 
-interface ISlurmConfigState { 
-  empty: Boolean;
+interface ISlurmConfigState {
+  empty: boolean;
   allocation: string;
   node: string;
   kernel: string;
@@ -31,38 +31,38 @@ interface ISlurmConfigState {
   runtime: string;
   reservation: string;
   endtime: string;
-};
+}
 
 interface IAllocation {
   [id: string]: {
     config: {
-      gpus: string,
-      jobid: string,
-      kernel: string,
-      kernel_argv: Array<string>,
-      kernel_language: string,
-      node: string,
-      nodes: string,
-      partition: string,
-      project: string,
-      reservation: string,
-      runtime: string,
-    },
-    endtime: number,
-    kernel_ids: Array<string>,
-    nodelist: Array<string>,
-    state: string
-  }
-};
+      gpus: string;
+      jobid: string;
+      kernel: string;
+      kernel_argv: Array<string>;
+      kernel_language: string;
+      node: string;
+      nodes: string;
+      partition: string;
+      project: string;
+      reservation: string;
+      runtime: string;
+    };
+    endtime: number;
+    kernel_ids: Array<string>;
+    nodelist: Array<string>;
+    state: string;
+  };
+}
 
-interface IKernelInfoState { 
-  empty: Boolean;
+interface IKernelInfoState {
+  empty: boolean;
   allocation_infos: Array<{
-    id: string,
-    state: string,
-    kernels: number
+    id: string;
+    state: string;
+    kernels: number;
   }>;
-};
+}
 
 interface IDropdownProps {
   label: string;
@@ -70,7 +70,7 @@ interface IDropdownProps {
   selected: any;
   values: Array<string>;
   onValueChange: any;
-  editable: Boolean;
+  editable: boolean;
   available_kernels: any;
 }
 
@@ -81,7 +81,7 @@ interface INumberInputProps {
   min: string;
   max: string;
   onValueChange: any;
-  editable: Boolean;
+  editable: boolean;
 }
 
 interface ITimerProps {
@@ -101,19 +101,14 @@ const baseBtnClass = 'slurm-btn';
 const labelClass = 'slurm-input-label';
 const spanClass = 'slurm-config-span';
 
-
 export class SlurmPanel extends ReactWidget {
   private _available_kernels: any;
   private _commands: CommandRegistry;
   private _stateChanged = new Signal<SlurmPanel, OptionsForm>(this);
 
-
-  constructor(
-    commands: CommandRegistry,
-    available_kernels: any,
-    ) {
+  constructor(commands: CommandRegistry, available_kernels: any) {
     super();
-    
+
     this.id = 'slurm-wrapper-widget';
     this.addClass('slurm-wrapper-panel');
     this.title.icon = slurmelIcon;
@@ -121,7 +116,7 @@ export class SlurmPanel extends ReactWidget {
 
     this._available_kernels = available_kernels;
     this._commands = commands;
-    
+
     this.updateInfos();
   }
 
@@ -132,8 +127,10 @@ export class SlurmPanel extends ReactWidget {
   async updateInfos() {
     // Poll for file changes
     // do not poll if panel is not visible
-    while ( true ) {
-      if(this.isVisible) {
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (this.isVisible) {
         const data = await sendGetRequest('local');
         this._stateChanged.emit(data);
         await this.delay(2000);
@@ -160,18 +157,24 @@ export class SlurmPanel extends ReactWidget {
     return (
       <React.Fragment>
         <Collapsible open={true} trigger="Current Configuration">
-          <CurrentSlurmConfig panel={this} available_kernels={this._available_kernels}/>
-          <SlurmConfigurator commands={this._commands}/>
+          <CurrentSlurmConfig
+            panel={this}
+            available_kernels={this._available_kernels}
+          />
+          <SlurmConfigurator commands={this._commands} />
         </Collapsible>
         <Collapsible open={true} trigger="Kernel Allocations">
-          <KernelInfos panel={this}/>
+          <KernelInfos panel={this} />
         </Collapsible>
       </React.Fragment>
-    )
+    );
   }
 }
 // export class SlurmConfigurator extends React.Component<{commands: CommandRegistry}> {
-export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInfoState> {
+export class KernelInfos extends React.Component<
+  { panel: SlurmPanel },
+  IKernelInfoState
+> {
   constructor(props: any) {
     super(props);
     this.props.panel.stateChanged.connect(this._updateState, this);
@@ -180,18 +183,18 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
     this.state = {
       empty: false,
       allocation_infos: []
-    }
+    };
   }
 
   private _updateState(emitter: SlurmPanel, data: OptionsForm): void {
     const allocations: IAllocation = data.allocations;
-    if ( Object.keys(allocations).length === 0 ) {
+    if (Object.keys(allocations).length === 0) {
       this.setState({
-        empty: true,
-      })
+        empty: true
+      });
     } else {
-      let allocation_infos = [];
-      for ( let key in allocations ) {
+      const allocation_infos = [];
+      for (const key in allocations) {
         allocation_infos.push({
           id: key,
           kernels: Object.keys(allocations[key].kernel_ids).length,
@@ -206,45 +209,48 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
   }
 
   cancelAllocation(jobid: string) {
-    console.log("Cancel ");
+    console.log('Cancel ');
     sendCancelRequest(jobid);
   }
 
   render() {
     // Nothing configured yet.
     if (this.state.empty) {
-      return (
-        <div>There are no allocations available.</div>
-      )
+      return <div>There are no allocations available.</div>;
     }
-    let content = [];
-    let btnClass = baseBtnClass + " slurm-kill-btn";
-    for ( let key in this.state.allocation_infos ) {
+    const content = [];
+    const btnClass = baseBtnClass + ' slurm-kill-btn';
+    for (const key in this.state.allocation_infos) {
       content.push(
-        <div style={{display: "flex", justifyContent: "space-between"}}>
-          <div className="kernel-alloc-div">{this.state.allocation_infos[key].id} (#{this.state.allocation_infos[key].kernels}): {this.state.allocation_infos[key].state}</div>
-          <button className={btnClass} onClick={() => this.cancelAllocation(this.state.allocation_infos[key].id)}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className="kernel-alloc-div">
+            {this.state.allocation_infos[key].id} (#
+            {this.state.allocation_infos[key].kernels}):{' '}
+            {this.state.allocation_infos[key].state}
+          </div>
+          <button
+            className={btnClass}
+            onClick={() =>
+              this.cancelAllocation(this.state.allocation_infos[key].id)
+            }
+          >
             Kill
           </button>
         </div>
       );
     }
     // Return current configuration.
-    return (
-      <React.Fragment>
-        {content}
-      </React.Fragment>
-    )
+    return <React.Fragment>{content}</React.Fragment>;
   }
 }
 
 /**
  * Slurm configurator widget.
  */
- export class SlurmConfigWidget extends ReactWidget {
+export class SlurmConfigWidget extends ReactWidget {
   private _config_system: OptionsForm;
-  private _available_kernels: any
-  private _slurmelRef: any
+  private _available_kernels: any;
+  private _slurmelRef: any;
 
   constructor(config_system: OptionsForm, available_kernels: any) {
     super();
@@ -259,17 +265,17 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
     const kernel: string = state.kernel;
     const kernel_argv: Array<string> = this._available_kernels[state.kernel][1];
     const kernel_language: string = this._available_kernels[state.kernel][2];
-    let allocation = "";
-    let node = "";
-    if ( state.allocation === "New" ) {
-      allocation = "None";
+    let allocation = '';
+    let node = '';
+    if (state.allocation === 'New') {
+      allocation = 'None';
     } else {
       allocation = state.allocation;
     }
-    if ( state.allocation_node === "Any" ) {
-      node = "None";
+    if (state.allocation_node === 'Any') {
+      node = 'None';
     } else {
-      node = state.allocation_node
+      node = state.allocation_node;
     }
     const config = {
       allocation,
@@ -281,15 +287,21 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
       partition: state.partition,
       nodes: state.nodes,
       gpus: state.gpus,
-      runtime: state.runtime,
-    }
+      runtime: state.runtime
+    };
 
     return config;
   }
 
   render(): JSX.Element {
     // TODO no config_system no party
-    const x = <SlurmelComponents config_system={this._config_system} available_kernels={this._available_kernels} ref={this._slurmelRef}/>;
+    const x = (
+      <SlurmelComponents
+        config_system={this._config_system}
+        available_kernels={this._available_kernels}
+        ref={this._slurmelRef}
+      />
+    );
     return x;
   }
 }
@@ -298,8 +310,12 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
  * Contains all elements and logic for the kernel configurator.
  * Only called by SlurmWidget in this file.
  */
- class SlurmelComponents extends React.Component<{config_system: any, available_kernels: any}, {[key: string]: any}, any> {
-  constructor(props: {config_system: any, available_kernels: any}) {
+class SlurmelComponents extends React.Component<
+  { config_system: any; available_kernels: any },
+  { [key: string]: any },
+  any
+> {
+  constructor(props: { config_system: any; available_kernels: any }) {
     super(props);
 
     // bind onClick / onChange functions
@@ -310,33 +326,33 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
     this.handleNumberChange = this.handleNumberChange.bind(this);
 
     // translate current_config from kernel.json to this state
-    const current_config_comp = this.get_current_config(props.config_system.current_config);
+    const current_config_comp = this.get_current_config(
+      props.config_system.current_config
+    );
     // apply default values
     this.state = this.default_values(props, current_config_comp);
   }
 
-  get_current_config(
-    current_config: any
-  ) {
-    let allocation: string = current_config.jobid || "None";
-    let allocation_node: string = current_config.node || "None";
+  get_current_config(current_config: any) {
+    let allocation: string = current_config.jobid || 'None';
+    let allocation_node: string = current_config.node || 'None';
 
-    if ( allocation === "None" ) {
-      allocation = "";
-      allocation_node = "";
+    if (allocation === 'None') {
+      allocation = '';
+      allocation_node = '';
     } else {
-      if ( allocation_node === "None" ) {
-        allocation_node = "";
+      if (allocation_node === 'None') {
+        allocation_node = '';
       }
     }
-    let kernel: string = current_config.kernel || "" ;
-    let project: string = current_config.project || "";
-    let partition: string = current_config.partition || "";
-    let nodes: string = current_config.nodes || "";
-    let gpus: string = current_config.gpus || "";
-    let runtime: string = current_config.runtime || "";
-    let reservation: string = current_config.runtime || "";
-    return ({
+    const kernel: string = current_config.kernel || '';
+    const project: string = current_config.project || '';
+    const partition: string = current_config.partition || '';
+    const nodes: string = current_config.nodes || '';
+    const gpus: string = current_config.gpus || '';
+    const runtime: string = current_config.runtime || '';
+    const reservation: string = current_config.runtime || '';
+    return {
       allocation,
       allocation_node,
       kernel,
@@ -345,142 +361,180 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
       nodes,
       gpus,
       runtime,
-      reservation,
-    });
+      reservation
+    };
   }
 
   default_values(
-    props: any, {
+    props: any,
+    {
       resources_editable = true,
-      project = "",
-      partition = "",
-      nodes = "",
-      gpus = "",
-      runtime = "",
-      reservation = "",
-      allocation = "",
-      kernel = "",
+      project = '',
+      partition = '',
+      nodes = '',
+      gpus = '',
+      runtime = '',
+      reservation = '',
+      allocation = '',
+      kernel = '',
       date_show = false,
-      date_endtime = "",
-      allocation_node = ""
+      date_endtime = '',
+      allocation_node = ''
     } = {}
   ) {
     // setup some default values
     const dl: { [key: string]: any } = props.config_system.dropdown_lists;
 
     let tmp: any = dl.projects;
-    if ( project === "" ) {
-      project = tmp.length > 0 ? tmp[0] : "";
-    }      
-    const projects: Array<string> = tmp.includes(project) ? tmp : [project]
+    if (project === '') {
+      project = tmp.length > 0 ? tmp[0] : '';
+    }
+    const projects: Array<string> = tmp.includes(project) ? tmp : [project];
 
     tmp = dl.partitions[project];
-    if ( partition === "" ) {
-      partition = tmp && tmp.length > 0 ? tmp[0] : "";
+    if (partition === '') {
+      partition = tmp && tmp.length > 0 ? tmp[0] : '';
     }
-    const partitions: Array<string> = tmp && tmp.includes(partition) ? tmp : [partition];
+    const partitions: Array<string> =
+      tmp && tmp.includes(partition) ? tmp : [partition];
 
     const partition_config = props.config_system.resources[partition];
-    if ( nodes === "" ) {
-      nodes = partition_config && partition_config.nodes ? partition_config.nodes.default : "0";
+    if (nodes === '') {
+      nodes =
+        partition_config && partition_config.nodes
+          ? partition_config.nodes.default
+          : '0';
     }
-    const nodes_min: string = partition_config && partition_config.nodes ? partition_config.nodes.minmax[0] : "0";
-    const nodes_max: string = partition_config && partition_config.nodes ? partition_config.nodes.minmax[1] : "0";
+    const nodes_min: string =
+      partition_config && partition_config.nodes
+        ? partition_config.nodes.minmax[0]
+        : '0';
+    const nodes_max: string =
+      partition_config && partition_config.nodes
+        ? partition_config.nodes.minmax[1]
+        : '0';
 
-    if ( gpus === "") {
-      gpus = partition_config && partition_config.gpus ? partition_config.gpus.default : "0";
+    if (gpus === '') {
+      gpus =
+        partition_config && partition_config.gpus
+          ? partition_config.gpus.default
+          : '0';
     }
-    const gpus_min: string = partition_config && partition_config.gpus ? partition_config.gpus.minmax[0] : "0";
-    const gpus_max: string = partition_config && partition_config.gpus ? partition_config.gpus.minmax[1] : "0";
+    const gpus_min: string =
+      partition_config && partition_config.gpus
+        ? partition_config.gpus.minmax[0]
+        : '0';
+    const gpus_max: string =
+      partition_config && partition_config.gpus
+        ? partition_config.gpus.minmax[1]
+        : '0';
 
-    if ( runtime === "") {
-      runtime = partition_config && partition_config.runtime ? partition_config.runtime.default : "0";
+    if (runtime === '') {
+      runtime =
+        partition_config && partition_config.runtime
+          ? partition_config.runtime.default
+          : '0';
     }
-    const runtime_min: string = partition_config && partition_config.runtime ? partition_config.runtime.minmax[0] : "0";
-    const runtime_max: string = partition_config && partition_config.runtime ? partition_config.runtime.minmax[1] : "0";
-    
-    if ( reservation === "" ) {
-      reservation = "None";
+    const runtime_min: string =
+      partition_config && partition_config.runtime
+        ? partition_config.runtime.minmax[0]
+        : '0';
+    const runtime_max: string =
+      partition_config && partition_config.runtime
+        ? partition_config.runtime.minmax[1]
+        : '0';
+
+    if (reservation === '') {
+      reservation = 'None';
     }
     tmp = dl.reservations;
-    const reservations: Array<string> = project in tmp && partition in dl.reservations[project] ? dl.reservations[project][partition] : ["None"];
+    const reservations: Array<string> =
+      project in tmp && partition in dl.reservations[project]
+        ? dl.reservations[project][partition]
+        : ['None'];
     // console.log(props.config_system.allocations);
-    if ( allocation === "" || !(props.config_system.allocations.hasOwnProperty(allocation) ) ) {
-      allocation = "New";
+    if (
+      allocation === '' ||
+      !Object.prototype.hasOwnProperty.call(
+        props.config_system.allocations,
+        allocation
+      )
+    ) {
+      allocation = 'New';
     }
-    let allocation_names: Array<String> = ["New"];
-    for ( let key in props.config_system.allocations ){
+    const allocation_names: Array<string> = ['New'];
+    for (const key in props.config_system.allocations) {
       allocation_names.push(key);
     }
 
     // Node where to start the kernel on
-    if ( allocation_node === "" ) {
-      allocation_node = "Any";
+    if (allocation_node === '') {
+      allocation_node = 'Any';
     }
-    let allocation_node_names: Array<String> = ["Any"];
-    if ( allocation != "New" ) {      
-      let tmp = props.config_system.allocations[allocation];
-      if ( tmp.nodelist) {
+    let allocation_node_names: Array<string> = ['Any'];
+    if (allocation !== 'New') {
+      const tmp = props.config_system.allocations[allocation];
+      if (tmp.nodelist) {
         allocation_node_names = allocation_node_names.concat(tmp.nodelist);
-      }      
+      }
     }
 
     // Kernels the user wants to start
-    let kernel_names: Array<String> = [];
-    for ( let key in props.available_kernels ) {
+    const kernel_names: Array<string> = [];
+    for (const key in props.available_kernels) {
       kernel_names.push(key);
     }
-    if ( kernel === "" ) {
+    if (kernel === '') {
       kernel = String(kernel_names[0]);
     }
 
     // show rest time for allocation
-    if ( allocation === "New" ){
+    if (allocation === 'New') {
       date_show = false;
       resources_editable = true;
     } else {
       date_show = true;
       resources_editable = false;
     }
-    if ( date_show && date_endtime == "") {
-      let tmp = props.config_system.allocations[allocation]
+    if (date_show && date_endtime === '') {
+      const tmp = props.config_system.allocations[allocation];
       date_endtime = tmp.endtime;
     }
-    return (
-      {
-        resources_editable,
-        project,
-        projects,
-        partition,
-        partitions,
-        nodes,
-        nodes_min,
-        nodes_max,
-        gpus,
-        gpus_min,
-        gpus_max,
-        runtime,
-        runtime_min,
-        runtime_max,
-        reservation,
-        reservations,
-        kernel,
-        kernel_names,
-        allocation,
-        allocation_names,
-        date_show,
-        date_endtime,
-        allocation_node,
-        allocation_node_names
-      }
-    );
+    return {
+      resources_editable,
+      project,
+      projects,
+      partition,
+      partitions,
+      nodes,
+      nodes_min,
+      nodes_max,
+      gpus,
+      gpus_min,
+      gpus_max,
+      runtime,
+      runtime_min,
+      runtime_max,
+      reservation,
+      reservations,
+      kernel,
+      kernel_names,
+      allocation,
+      allocation_names,
+      date_show,
+      date_endtime,
+      allocation_node,
+      allocation_node_names
+    };
   }
 
   handleAllocationChange(key: string, value: string) {
-    if ( value == "New" ) {
-      if ( this.state.allocation != value ) {
+    if (value === 'New') {
+      if (this.state.allocation !== value) {
         // do not change kernel, but anything else to default
-        this.setState(this.default_values(this.props, { kernel: this.state.kernel } ));
+        this.setState(
+          this.default_values(this.props, { kernel: this.state.kernel })
+        );
       }
     } else {
       // Pre existing allocation. Do not allow changes to resources and set them to
@@ -488,39 +542,37 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
       const config: any = this.props.config_system.allocations[value].config;
       const project: any = config.project;
       const partition: any = config.partition;
-      const gpus = config.gpus ? config.gpus : "";
-      const nodes = config.nodes ? config.nodes : "";
-      const runtime = config.runtime ? config.runtime : "";
+      const gpus = config.gpus ? config.gpus : '';
+      const nodes = config.nodes ? config.nodes : '';
+      const runtime = config.runtime ? config.runtime : '';
       const reservation: any = config.reservation;
-      const date_endtime: string = this.props.config_system.allocations[value].endtime;
+      const date_endtime: string =
+        this.props.config_system.allocations[value].endtime;
       this.setState(
-        this.default_values(
-          this.props,
-          {
-            resources_editable: false,
-            project,
-            partition,
-            nodes,
-            gpus,
-            runtime,
-            reservation,
-            allocation: value,
-            allocation_node: "Any",
-            kernel: this.state.kernel,
-            date_show: true,
-            date_endtime
-          }
-        )
+        this.default_values(this.props, {
+          resources_editable: false,
+          project,
+          partition,
+          nodes,
+          gpus,
+          runtime,
+          reservation,
+          allocation: value,
+          allocation_node: 'Any',
+          kernel: this.state.kernel,
+          date_show: true,
+          date_endtime
+        })
       );
     }
   }
 
   handleNodeChange(key: string, allocation_node: string) {
-    this.setState({allocation_node});
+    this.setState({ allocation_node });
   }
 
   handleKernelChange(key: string, kernel: string) {
-    this.setState({kernel})
+    this.setState({ kernel });
   }
 
   /**
@@ -535,43 +587,40 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
     const dl = this.props.config_system.dropdown_lists;
     let project = this.state.project;
     let partition = this.state.partition;
-    if ( key === "partitions" ) {
+    if (key === 'partitions') {
       partition = value;
-      
+
       // Update the chosen partition
       this.setState({ partition });
-    } else if ( key === "projects" ) {
+    } else if (key === 'projects') {
       project = value;
 
       // Update the chosen project
       this.setState({ project });
-      
+
       const partitions = dl.partitions[project];
       partition = partitions[0];
       // Update the partition dropdown menu
-      this.setState({ 
+      this.setState({
         partition,
         partitions
       });
     }
 
-    if ( key === "reservations" ){
+    if (key === 'reservations') {
       // Update selected reservation
       this.setState({ reservation: value });
     } else {
       // Update Resources, this will update nodes, gpus, runtime and reservation while keeping the given parameters
       this.setState(
-        this.default_values(
-          this.props,
-          {
-            project,
-            partition, 
-            allocation: this.state.allocation,
-            kernel: this.state.kernel,
-            date_show: this.state.date_show,
-            date_endtime: this.state.date_endtime
-          }
-        )
+        this.default_values(this.props, {
+          project,
+          partition,
+          allocation: this.state.allocation,
+          kernel: this.state.kernel,
+          date_show: this.state.date_show,
+          date_endtime: this.state.date_endtime
+        })
       );
     }
   }
@@ -579,20 +628,19 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
   /**
    * Checks if new value for number-input field is valide
    * @param value new value for input field
-   * @returns 
+   * @returns
    */
   validateNumber(value: string) {
     try {
-      if ( isNaN( parseInt(value) ) ){
-        console.log("Only positive numbers are allowed in nodes field.");
+      if (isNaN(parseInt(value))) {
+        console.log('Only positive numbers are allowed in nodes field.');
+        return false;
+      } else if (value.includes('.')) {
+        console.log('Only positive numbers are allowed in nodes field.');
         return false;
       }
-      else if (value.includes(".") ){
-        console.log("Only positive numbers are allowed in nodes field.");
-        return false;
-      }
-    } catch(e) {
-      console.log("Only positive numbers are allowed in nodes field.");
+    } catch (e) {
+      console.log('Only positive numbers are allowed in nodes field.');
       return false;
     }
     return true;
@@ -608,26 +656,24 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
     //   return;
     // }
     const partition = this.state.partition;
-    let max: string = "0";
+    let max: string = '0';
 
-    if ( key === "runtime" ) {
+    if (key === 'runtime') {
       max = this.props.config_system.resources[partition].runtime.minmax[1];
-    } else if ( key == "nodes" ) {
+    } else if (key === 'nodes') {
       max = this.props.config_system.resources[partition].nodes.minmax[1];
-    } else if ( key == "gpus" ) {
+    } else if (key === 'gpus') {
       max = this.props.config_system.resources[partition].gpus.minmax[1];
     } else {
-      console.log("Unsupported key: " + key);
+      console.log('Unsupported key: ' + key);
       return;
     }
-    if ( parseInt(value) > parseInt(max) ) {
+    if (parseInt(value) > parseInt(max)) {
       value = max.toString();
     }
-    this.setState(
-      {
-        [key]: value
-      }
-    );
+    this.setState({
+      [key]: value
+    });
   }
 
   /**
@@ -635,23 +681,119 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
    * @returns JSX.Element containing all html elements + logic
    */
   render(): JSX.Element {
-    const allocations = <DropdownComponent label="Select allocation for slurm wrapper" key_="allocations" selected={this.state.allocation} values={this.state.allocation_names} onValueChange={this.handleAllocationChange} editable={true} available_kernels={{}} />;
-    const allocnodes = <DropdownComponent label="Select node for slurm wrapper" key_="allocations_nodes" selected={this.state.allocation_node} values={this.state.allocation_node_names} onValueChange={this.handleNodeChange} editable={true} available_kernels={{}} />;
-    const kernels = <DropdownComponent label="Select kernel for slurm wrapper" key_="kernels" selected={this.state.kernel} values={this.state.kernel_names} onValueChange={this.handleKernelChange} editable={true} available_kernels={this.props.available_kernels} />;
-    const projects = <DropdownComponent label="Select project for slurm wrapper" key_="projects" selected={this.state.project} values={this.state.projects} onValueChange={this.handleDropdownChange} editable={this.state.resources_editable} available_kernels={{}} />;
-    const partitions = <DropdownComponent label="Select partition for slurm wrapper" key_="partitions" selected={this.state.partition} values={this.state.partitions} onValueChange={this.handleDropdownChange} editable={this.state.resources_editable} available_kernels={{}} />;
-    const reservations = <DropdownComponent label="Select reservation for slurm wrapper" key_="reservations" selected={this.state.reservation} values={this.state.reservations} onValueChange={this.handleDropdownChange} editable={this.state.resources_editable} available_kernels={{}} />;
-    const nodes = <InputNumberComponent label="Nodes" key_="nodes" value={this.state.nodes} min={this.state.nodes_min} max={this.state.nodes_max} onValueChange={this.handleNumberChange} editable={this.state.resources_editable} />;
-    const gpus = <InputNumberComponent label="GPUs" key_="gpus" value={this.state.gpus} min={this.state.gpus_min} max={this.state.gpus_max} onValueChange={this.handleNumberChange} editable={this.state.resources_editable} />;
-    const runtime = <InputNumberComponent label="Runtime (min)" key_="runtime" value={this.state.runtime} min={this.state.runtime_min} max={this.state.runtime_max} onValueChange={this.handleNumberChange} editable={this.state.resources_editable} />;
-    const timer = <AllocationTimer key_="timer" date_label="Time left: " date_endtime={this.state.date_endtime} />;
+    const allocations = (
+      <DropdownComponent
+        label="Select allocation for slurm wrapper"
+        key_="allocations"
+        selected={this.state.allocation}
+        values={this.state.allocation_names}
+        onValueChange={this.handleAllocationChange}
+        editable={true}
+        available_kernels={{}}
+      />
+    );
+    const allocnodes = (
+      <DropdownComponent
+        label="Select node for slurm wrapper"
+        key_="allocations_nodes"
+        selected={this.state.allocation_node}
+        values={this.state.allocation_node_names}
+        onValueChange={this.handleNodeChange}
+        editable={true}
+        available_kernels={{}}
+      />
+    );
+    const kernels = (
+      <DropdownComponent
+        label="Select kernel for slurm wrapper"
+        key_="kernels"
+        selected={this.state.kernel}
+        values={this.state.kernel_names}
+        onValueChange={this.handleKernelChange}
+        editable={true}
+        available_kernels={this.props.available_kernels}
+      />
+    );
+    const projects = (
+      <DropdownComponent
+        label="Select project for slurm wrapper"
+        key_="projects"
+        selected={this.state.project}
+        values={this.state.projects}
+        onValueChange={this.handleDropdownChange}
+        editable={this.state.resources_editable}
+        available_kernels={{}}
+      />
+    );
+    const partitions = (
+      <DropdownComponent
+        label="Select partition for slurm wrapper"
+        key_="partitions"
+        selected={this.state.partition}
+        values={this.state.partitions}
+        onValueChange={this.handleDropdownChange}
+        editable={this.state.resources_editable}
+        available_kernels={{}}
+      />
+    );
+    const reservations = (
+      <DropdownComponent
+        label="Select reservation for slurm wrapper"
+        key_="reservations"
+        selected={this.state.reservation}
+        values={this.state.reservations}
+        onValueChange={this.handleDropdownChange}
+        editable={this.state.resources_editable}
+        available_kernels={{}}
+      />
+    );
+    const nodes = (
+      <InputNumberComponent
+        label="Nodes"
+        key_="nodes"
+        value={this.state.nodes}
+        min={this.state.nodes_min}
+        max={this.state.nodes_max}
+        onValueChange={this.handleNumberChange}
+        editable={this.state.resources_editable}
+      />
+    );
+    const gpus = (
+      <InputNumberComponent
+        label="GPUs"
+        key_="gpus"
+        value={this.state.gpus}
+        min={this.state.gpus_min}
+        max={this.state.gpus_max}
+        onValueChange={this.handleNumberChange}
+        editable={this.state.resources_editable}
+      />
+    );
+    const runtime = (
+      <InputNumberComponent
+        label="Runtime (min)"
+        key_="runtime"
+        value={this.state.runtime}
+        min={this.state.runtime_min}
+        max={this.state.runtime_max}
+        onValueChange={this.handleNumberChange}
+        editable={this.state.resources_editable}
+      />
+    );
+    const timer = (
+      <AllocationTimer
+        key_="timer"
+        date_label="Time left: "
+        date_endtime={this.state.date_endtime}
+      />
+    );
 
     const divStyle = {
       minWidth: '450px',
       overflow: 'auto'
-    }
+    };
 
-    if (this.state.allocation == "New") {
+    if (this.state.allocation === 'New') {
       return (
         <div style={divStyle}>
           {allocations}
@@ -664,7 +806,7 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
           {runtime}
           {reservations}
         </div>
-      )
+      );
     } else {
       return (
         <div style={divStyle}>
@@ -674,12 +816,16 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
           <InfoComponent label="Project" value={this.state.project} />
           <InfoComponent label="Partition" value={this.state.partition} />
           <InfoComponent label="Nodes" value={this.state.nodes} />
-          {this.state.gpus > 0 && <InfoComponent label="GPUs" value={this.state.gpus} />}
+          {this.state.gpus > 0 && (
+            <InfoComponent label="GPUs" value={this.state.gpus} />
+          )}
           <InfoComponent label="Runtime" value={this.state.runtime} />
-          {this.state.reservations.length < 2 && <InfoComponent label="Reservation" value={this.state.reservation} />}
+          {this.state.reservations.length < 2 && (
+            <InfoComponent label="Reservation" value={this.state.reservation} />
+          )}
           {this.state.date_show && timer}
         </div>
-      )
+      );
     }
   }
 }
@@ -687,7 +833,10 @@ export class KernelInfos extends React.Component<{panel: SlurmPanel}, IKernelInf
 /**
  * Component containing info about current slurm configuration.
  */
-export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, available_kernels: any}, ISlurmConfigState> {
+export class CurrentSlurmConfig extends React.Component<
+  { panel: SlurmPanel; available_kernels: any },
+  ISlurmConfigState
+> {
   constructor(props: any) {
     super(props);
     this.props.panel.stateChanged.connect(this._updateState, this);
@@ -703,24 +852,28 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
       gpus: '',
       runtime: '',
       reservation: '',
-      endtime: '',
-    }
+      endtime: ''
+    };
   }
 
   private _updateState(emitter: SlurmPanel, data: OptionsForm): void {
     // console.log(data);
     const current_config = data.current_config;
-  
-    if (Object.keys(current_config).length === 0 ) {
+
+    if (Object.keys(current_config).length === 0) {
       // Nothing configured yet.
       this.setState({
-        empty: true,
-      })
+        empty: true
+      });
     } else {
       let allocation = current_config.jobid;
       let node = current_config.node;
-      if (allocation == "None") allocation = "New";
-      if (node == "None") node = "Any";
+      if (allocation === 'None') {
+        allocation = 'New';
+      }
+      if (node === 'None') {
+        node = 'Any';
+      }
 
       // Save configuration to state.
       this.setState({
@@ -733,18 +886,18 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
         nodes: current_config.nodes,
         gpus: current_config.gpus,
         runtime: current_config.runtime,
-        reservation: current_config.reservation,
-      })
+        reservation: current_config.reservation
+      });
       // Save endtime if exists.
-      let jobid = current_config.jobid;
+      const jobid = current_config.jobid;
       if (data.allocations[jobid]) {
         this.setState({
-          endtime: data.allocations[jobid].endtime,
-        })
+          endtime: data.allocations[jobid].endtime
+        });
       } else {
         this.setState({
-          endtime: '',
-        })
+          endtime: ''
+        });
       }
     }
   }
@@ -753,8 +906,10 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
     // Nothing configured yet.
     if (this.state.empty) {
       return (
-        <div>Nothing configured yet. Click configure and choose a partition.</div>
-      )
+        <div>
+          Nothing configured yet. Click configure and choose a partition.
+        </div>
+      );
     }
 
     let kernelName = '';
@@ -770,30 +925,44 @@ export class CurrentSlurmConfig extends React.Component<{panel: SlurmPanel, avai
         <InfoComponent label="Project" value={this.state.project} />
         <InfoComponent label="Partition" value={this.state.partition} />
         <InfoComponent label="Nodes" value={this.state.nodes} />
-        {this.state.gpus != "0" && <InfoComponent label="GPUs" value={this.state.gpus} />}
+        {this.state.gpus !== '0' && (
+          <InfoComponent label="GPUs" value={this.state.gpus} />
+        )}
         <InfoComponent label="Runtime" value={this.state.runtime} />
-        {this.state.reservation != "None" && 
-            <InfoComponent label="Reservation" value={this.state.reservation} />}
-        {this.state.endtime && <AllocationTimer key_="timer" date_label="Time left: " date_endtime={this.state.endtime} />}
+        {this.state.reservation !== 'None' && (
+          <InfoComponent label="Reservation" value={this.state.reservation} />
+        )}
+        {this.state.endtime && (
+          <AllocationTimer
+            key_="timer"
+            date_label="Time left: "
+            date_endtime={this.state.endtime}
+          />
+        )}
       </React.Fragment>
-    )
+    );
   }
 }
 
 /**
  * Component containing button opening the slurm configuration dialog.
  */
-export class SlurmConfigurator extends React.Component<{commands: CommandRegistry}> {
+export class SlurmConfigurator extends React.Component<{
+  commands: CommandRegistry;
+}> {
   render() {
-    let btnClass = baseBtnClass + " slurm-config-btn";
+    const btnClass = baseBtnClass + ' slurm-config-btn';
     return (
-      <button className={btnClass} style={{marginTop: '12px'}} onClick={() => this.props.commands.execute('open-slurm-config-dialog')}>
+      <button
+        className={btnClass}
+        style={{ marginTop: '12px' }}
+        onClick={() => this.props.commands.execute('open-slurm-config-dialog')}
+      >
         Configure
       </button>
-    )
+    );
   }
 }
-
 
 export class AllocationTimer extends React.Component<ITimerProps, ITimerState> {
   private _timerID: any;
@@ -804,30 +973,27 @@ export class AllocationTimer extends React.Component<ITimerProps, ITimerState> {
   }
 
   componentDidMount() {
-    this._timerID = setInterval(
-      () => this.tick(),
-      1000
-    );
+    this._timerID = setInterval(() => this.tick(), 1000);
   }
 
   componentWillUnmount() {
     clearInterval(this._timerID);
   }
 
-  get_time_values() {    
+  get_time_values() {
     const now = Math.floor(new Date().getTime() / 1000);
 
     // Find the distance between now and the count down date
     let distance = Math.floor(this.props.date_endtime / 1) - now;
-    if ( distance < 0 ) {
+    if (distance < 0) {
       distance = 0;
       clearInterval(this._timerID);
     }
-  
+
     // Time calculations for days, hours, minutes and seconds
     const hours = String(Math.floor((distance % (60 * 60 * 24)) / (60 * 60)));
-    const minutes = String(Math.floor((distance % (60 * 60)) / (60)));
-    const seconds = String(Math.floor((distance % (60))));
+    const minutes = String(Math.floor((distance % (60 * 60)) / 60));
+    const seconds = String(Math.floor(distance % 60));
     return {
       distance: String(distance),
       hours,
@@ -841,22 +1007,24 @@ export class AllocationTimer extends React.Component<ITimerProps, ITimerState> {
   }
 
   render() {
-    let spanStyle = { color: 'var(--jp-ui-font-color0)' };
-    if ( parseInt(this.state.distance) < 300 ) {
+    const spanStyle = { color: 'var(--jp-ui-font-color0)' };
+    if (parseInt(this.state.distance) < 300) {
       spanStyle.color = 'var(--jp-error-color1)';
     }
 
-    const minutes_ = "0" + this.state.minutes
-    const minutes = minutes_.substring(minutes_.length-2);
-    const seconds_ = "0" + this.state.seconds
-    const seconds = seconds_.substring(seconds_.length-2);
+    const minutes_ = '0' + this.state.minutes;
+    const minutes = minutes_.substring(minutes_.length - 2);
+    const seconds_ = '0' + this.state.seconds;
+    const seconds = seconds_.substring(seconds_.length - 2);
 
     return (
-      <div className='lm-Widget p-Widget jp-Dialog-body'>
+      <div className="lm-Widget p-Widget jp-Dialog-body">
         <label className={labelClass}>
           <span className={spanClass} style={spanStyle}>
-            <span style={{fontWeight: 'bold'}}>{this.props.date_label}</span>
-            <span style={{float: 'right'}}>{this.state.hours}:{minutes}:{seconds}</span>
+            <span style={{ fontWeight: 'bold' }}>{this.props.date_label}</span>
+            <span style={{ float: 'right' }}>
+              {this.state.hours}:{minutes}:{seconds}
+            </span>
           </span>
           {/* <input style={inputStyle} className='jp-mod-styled' type="number" disabled={!this.props.editable} key={this.props.key_} id={this.props.key_} name={this.props.key_} value={this.props.value} min={this.props.min} max={this.props.max} onChange={this.handleChange}/> */}
         </label>
@@ -879,44 +1047,52 @@ class DropdownComponent extends React.Component<IDropdownProps> {
   }
 
   render() {
-    if ( this.props.key_ === "reservations" && this.props.values.length < 2) {
+    if (this.props.key_ === 'reservations' && this.props.values.length < 2) {
       // If there's only "None" as reservation we don't have to show it.
       return null;
     }
 
     const selected = this.props.selected;
     const values = this.props.values;
-    let valuesReact = {}
+    let valuesReact: React.JSX.Element[];
 
-    if ( this.props.key_ === "kernels" ) {
-      valuesReact = values.map(
-        x => {
-          if (x === selected){
-            return <option value={x} selected>{this.props.available_kernels[x][0]}</option>;
-          } else {
-            return <option value={x}>{this.props.available_kernels[x][0]}</option>;
-          }
+    if (this.props.key_ === 'kernels') {
+      valuesReact = values.map(x => {
+        if (x === selected) {
+          return (
+            <option value={x} selected>
+              {this.props.available_kernels[x][0]}
+            </option>
+          );
+        } else {
+          return (
+            <option value={x}>{this.props.available_kernels[x][0]}</option>
+          );
         }
-      )
+      });
     } else {
-      valuesReact = values.map(
-        x =>  {
-          if (x === selected) {
-            return <option selected>{x}</option>;
-          } else {
-            return <option>{x}</option>;
-          }
+      valuesReact = values.map(x => {
+        if (x === selected) {
+          return <option selected>{x}</option>;
+        } else {
+          return <option>{x}</option>;
         }
-      )
+      });
     }
-    
+
     return (
-      <div className='lm-Widget p-Widget jp-Dialog-body'>
-        <label>
-          {this.props.label} :
-        </label>
-        <div className='jp-select-wrapper'>
-          <select className='slurmel-select' key={this.props.key_} disabled={!this.props.editable} name={this.props.key_} onChange={this.handleChange}>{valuesReact}</select>
+      <div className="lm-Widget p-Widget jp-Dialog-body">
+        <label>{this.props.label} :</label>
+        <div className="jp-select-wrapper">
+          <select
+            className="slurmel-select"
+            key={this.props.key_}
+            disabled={!this.props.editable}
+            name={this.props.key_}
+            onChange={this.handleChange}
+          >
+            {valuesReact}
+          </select>
         </div>
       </div>
     );
@@ -933,24 +1109,37 @@ class InputNumberComponent extends React.Component<INumberInputProps> {
     this.handleChange = this.handleChange.bind(this);
   }
 
-  handleChange(e: any) {    
+  handleChange(e: any) {
     this.props.onValueChange(this.props.key_, e.target.value);
   }
 
   render() {
     let inputClasses = 'jp-mod-styled slurmel-input';
-    if (!this.props.editable) inputClasses += ' disabled';
-   
-    if ( this.props.key_ === "gpus" && this.props.value === "0" ) {
+    if (!this.props.editable) {
+      inputClasses += ' disabled';
+    }
+
+    if (this.props.key_ === 'gpus' && this.props.value === '0') {
       return null;
     }
     return (
-      <div className='lm-Widget p-Widget jp-Dialog-body'>
+      <div className="lm-Widget p-Widget jp-Dialog-body">
         <label className={labelClass}>
           <span className={spanClass}>
             {this.props.label} [{this.props.min}-{this.props.max}]:
           </span>
-          <input className={inputClasses} type="number" disabled={!this.props.editable} key={this.props.key_} id={this.props.key_} name={this.props.key_} value={this.props.value} min={this.props.min} max={this.props.max} onChange={this.handleChange}/>
+          <input
+            className={inputClasses}
+            type="number"
+            disabled={!this.props.editable}
+            key={this.props.key_}
+            id={this.props.key_}
+            name={this.props.key_}
+            value={this.props.value}
+            min={this.props.min}
+            max={this.props.max}
+            onChange={this.handleChange}
+          />
         </label>
       </div>
     );
@@ -960,13 +1149,13 @@ class InputNumberComponent extends React.Component<INumberInputProps> {
 /**
  * Component class for displaying configuration info components
  */
-class InfoComponent extends React.Component<{label: string, value: string}> {
+class InfoComponent extends React.Component<{ label: string; value: string }> {
   render() {
     return (
       <div>
-        <span style={{fontWeight: 'bold'}}>{this.props.label}:</span>
-        <span style={{float: 'right'}}>{this.props.value}</span>
+        <span style={{ fontWeight: 'bold' }}>{this.props.label}:</span>
+        <span style={{ float: 'right' }}>{this.props.value}</span>
       </div>
-    )
+    );
   }
 }
