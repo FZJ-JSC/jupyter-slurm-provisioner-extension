@@ -33,7 +33,7 @@ button.slurm-kill-btn {
 }
 
 input.slurmel-input {
-  margin: 2px 0 2px 20px;;
+  margin: 2px 0 2px 20px;
   max-width: 100px;
   background-color: var(--jp-layout-color2);
   border-radius: 5px;
