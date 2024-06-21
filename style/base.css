@@ -33,11 +33,10 @@ button.slurm-kill-btn {
 }
 
 input.slurmel-input {
-  margin-left: 20px;
+  margin: 2px 0 2px 20px;;
   max-width: 100px;
-  background-color: #e9e9ed;
+  background-color: var(--jp-layout-color2);
   border-radius: 5px;
-  border-color: #8f8f9d;
   font-size: unset;
 }
 
@@ -49,8 +48,7 @@ input.slurmel-input.disabled {
 
 label.slurm-input-label {
   display: flex;
-
-  /* font-size: var(--jp-ui-font-size2); */
+  margin-right: 5px;
 }
 
 span.slurm-config-span {
@@ -64,7 +62,11 @@ select.slurmel-select {
   height: 32px;
   font-size: var(--jp-ui-font-size2);
   color: var(--jp-ui-font-color0);
+  background: var(--jp-layout-color2);
+  border-color: var(--jp-border-color2);
+  border-radius: var(--jp-border-radius);
   padding: 0 25px 0 8px;
+  margin-right: 5px;
 }
 
 /* stylelint-disable */
