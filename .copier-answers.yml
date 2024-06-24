@@ -1,0 +1,14 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.3.1
+_src_path: https://github.com/jupyterlab/extension-template
+author_email: t.kreuzer@fz-juelich.de
+author_name: Tim Kreuzer
+has_binder: false
+has_settings: false
+kind: server
+labextension_name: jupyter-slurm-provisioner-extension
+project_short_description: Configure the Slurm kernel in JupyterLab
+python_name: jupyter_slurm_provisioner_extension
+repository: https://github.com/FZJ-JSC/jupyter-slurm-provisioner-extension.git
+test: false
+

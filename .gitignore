@@ -1,16 +1,15 @@
 *.bundle.*
 lib/
 node_modules/
+*.log
 .eslintcache
 .stylelintcache
 *.egg-info/
 .ipynb_checkpoints
 *.tsbuildinfo
 jupyter_slurm_provisioner_extension/labextension
-
-# Integration tests
-ui-tests/test-results/
-ui-tests/playwright-report/
+# Version file is handled by hatchling
+jupyter_slurm_provisioner_extension/_version.py
 
 # Created by https://www.gitignore.io/api/python
 # Edit at https://www.gitignore.io/?templates=python
@@ -62,6 +61,7 @@ htmlcov/
 .coverage.*
 .cache
 nosetests.xml
+coverage/
 coverage.xml
 *.cover
 .hypothesis/
@@ -116,3 +116,11 @@ dmypy.json
 
 # OSX files
 .DS_Store
+
+### IDE Configs ####
+.idea/
+.vs/
+.vscode/
+
+# Yarn cache
+.yarn/

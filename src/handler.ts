@@ -26,8 +26,8 @@ export async function requestAPI<T>(
   let response: Response;
   try {
     response = await ServerConnection.makeRequest(requestUrl, init, settings);
-  } catch (error: any) {
-    throw new ServerConnection.NetworkError(error);
+  } catch (error) {
+    throw new ServerConnection.NetworkError(error as any);
   }
 
   let data: any = await response.text();
@@ -48,22 +48,22 @@ export async function requestAPI<T>(
 }
 
 export async function sendPostRequest(config: any) {
-  let new_config: {} = {
-      jobid: String(config.allocation || "None"),
-      node: String(config.node || "None"),
-      kernel: config.kernel,
-      kernel_argv: config.kernel_argv,
-      kernel_language: config.kernel_language,
-      project: String(config.project),
-      partition: String(config.partition),
-      nodes: String(config.nodes),
-      gpus: String(config.gpus || 0),
-      runtime: String(config.runtime),
-      reservation: String(config.reservation || "None")
-  }
+  const new_config: object = {
+    jobid: String(config.allocation || 'None'),
+    node: String(config.node || 'None'),
+    kernel: config.kernel,
+    kernel_argv: config.kernel_argv,
+    kernel_language: config.kernel_language,
+    project: String(config.project),
+    partition: String(config.partition),
+    nodes: String(config.nodes),
+    gpus: String(config.gpus || 0),
+    runtime: String(config.runtime),
+    reservation: String(config.reservation || 'None')
+  };
   await requestAPI<any>('configure', {
     body: JSON.stringify(new_config),
-    method: "POST"
+    method: 'POST'
   }).catch(reason => {
     console.error(
       `Slurm-Provisioner: Could not save slurm-provisioner.\n${reason}`
@@ -76,25 +76,26 @@ export async function sendGetRequest(path: string): Promise<OptionsForm> {
     dropdown_lists: {},
     resources: {},
     allocations: {},
-    documentationhref: "",
+    documentationhref: '',
     current_config: {}
-  }
-  await requestAPI<any>(path).then(data => {
-    config_system = data;
-  }).catch(reason => {
-    console.error(
-      `Slurm-Configurator: Could not receive OptionsForm for user.\n${reason}`
+  };
+  await requestAPI<any>(path)
+    .then(data => {
+      config_system = data;
+    })
+    .catch(reason => {
+      console.error(
+        `Slurm-Configurator: Could not receive OptionsForm for user.\n${reason}`
       );
     });
   return config_system;
 }
 
-
 export async function sendCancelRequest(jobid: string) {
   await requestAPI<any>('scancel', {
-    body: JSON.stringify({'jobid': jobid}),
-    method: "POST"
+    body: JSON.stringify({ jobid: jobid }),
+    method: 'POST'
   }).catch(reason => {
-    alert("Could not stop Allocation with jobid " + jobid);
+    alert('Could not stop Allocation with jobid ' + jobid);
   });
 }
