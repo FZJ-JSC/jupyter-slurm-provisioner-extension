@@ -1,6 +1,6 @@
 # jupyter_slurm_provisioner_extension
 
-[![Github Actions Status](https://github.com/FZJ-JSC/jupyter-slurm-provisioner-extension.git/workflows/Build/badge.svg)](https://github.com/FZJ-JSC/jupyter-slurm-provisioner-extension.git/actions/workflows/build.yml)
+[![Github Actions Status](https://github.com/FZJ-JSC/jupyter-slurm-provisioner-extension/workflows/Build/badge.svg)](https://github.com/FZJ-JSC/jupyter-slurm-provisioner-extension/actions/workflows/build.yml)
 
 Configure the Slurm kernel in JupyterLab
 
